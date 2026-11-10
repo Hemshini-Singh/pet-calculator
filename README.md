@@ -1,46 +1,20 @@
-# Astro Starter Kit: Basics
+# 🐾 Pet Calculator Hub Project
 
-```sh
-npm create astro@latest -- --template basics
-```
+This project was decided and validated through comprehensive data-driven SEO research in Antigravity.
 
-> 🧑‍🚀 **Seasoned astronaut?** Delete this file. Have fun!
+## Research & Validation Summary
+- **Domain Focus:** Global Interactive Pet Calculators & Tools Suite
+- **Market Demand:** Over 1,600+ keywords, 20+ core high-intent queries with 10K–100K+ monthly searches
+- **Competition:** Low difficulty (KD 2–13), easily outrankable with dedicated interactive tools
+- **Tech Stack:** Astro (Static Site Generation), Tailwind CSS, Cloudflare Pages
 
-## 🚀 Project Structure
+## Core Documents
+- [Full Conversation & Research Archive](file:///C:/Users/Himanshu%20kumar/.gemini/antigravity/brain/32d09855-e13a-4761-ab7e-0cf448c2d6c1/full-conversation-archive.md)
+- [Complete Site Architecture & Roadmap](file:///C:/Users/Himanshu%20kumar/.gemini/antigravity/brain/32d09855-e13a-4761-ab7e-0cf448c2d6c1/pet-calculator-site-plan.md)
 
-Inside of your Astro project, you'll see the following folders and files:
-
-```text
-/
-├── public/
-│   └── favicon.svg
-├── src
-│   ├── assets
-│   │   └── astro.svg
-│   ├── components
-│   │   └── Welcome.astro
-│   ├── layouts
-│   │   └── Layout.astro
-│   └── pages
-│       └── index.astro
-└── package.json
-```
-
-To learn more about the folder structure of an Astro project, refer to [our guide on project structure](https://docs.astro.build/en/basics/project-structure/).
-
-## 🧞 Commands
-
-All commands are run from the root of the project, from a terminal:
-
-| Command                   | Action                                           |
-| :------------------------ | :----------------------------------------------- |
-| `npm install`             | Installs dependencies                            |
-| `npm run dev`             | Starts local dev server at `localhost:4321`      |
-| `npm run build`           | Build your production site to `./dist/`          |
-| `npm run preview`         | Preview your build locally, before deploying     |
-| `npm run astro ...`       | Run CLI commands like `astro add`, `astro check` |
-| `npm run astro -- --help` | Get help using the Astro CLI                     |
-
-## 👀 Want to learn more?
-
-Feel free to check [our documentation](https://docs.astro.build) or jump into our [Discord server](https://astro.build/chat).
+## Next Steps
+When ready, scaffold the Astro project and implement the Phase 1 MVP calculators:
+1. Puppy Growth & Weight Calculator
+2. Cat Age & Cat Years to Human Years Converter
+3. Dog Age to Human Years Calculator
+4. Dog Food & Feeding Portion Calculator
