@@ -1,11 +1,428 @@
 ---
-import Welcome from '../components/Welcome.astro';
 import Layout from '../layouts/Layout.astro';
 
-// Welcome to Astro! Wondering what to do next? Check out the Astro documentation at https://docs.astro.build
-// Don't want to use any of this? Delete everything in this file, the `assets`, `components`, and `layouts` directories, and start fresh.
+const title = 'Housing Society Maintenance Interest Calculator (India)';
+const description =
+	'Free calculator to estimate the simple interest on late housing society / RWA maintenance dues in India. Enter your dues, due date, payment date and the society interest rate to get the interest and total payable.';
+
+const today = new Date().toISOString().slice(0, 10);
 ---
 
-<Layout>
-	<Welcome />
+<Layout title={title} description={description} path="/">
+	<header class="site-header">
+		<div class="container">
+			<span class="brand">Society Interest Calculator</span>
+			<span class="brand-sub">India · RWA / Cooperative Housing</span>
+		</div>
+	</header>
+
+	<main class="container">
+		<section class="hero">
+			<h1>Housing Society Maintenance Interest Calculator</h1>
+			<p class="lead">
+				Estimate the late-payment interest on your housing society or RWA maintenance
+				dues. The calculation uses <strong>simple interest</strong> — the method
+				prescribed under cooperative housing bye-laws — and never compounds interest
+				on the interest amount.
+			</p>
+		</section>
+
+		<section class="card" aria-labelledby="calc-heading">
+			<h2 id="calc-heading">Calculate your interest</h2>
+
+			<form id="calc-form" class="grid" novalidate>
+				<div class="field">
+					<label for="principal">Outstanding maintenance dues (₹)</label>
+					<input
+						id="principal"
+						name="principal"
+						type="number"
+						inputmode="decimal"
+						min="0"
+						step="0.01"
+						placeholder="e.g. 12000"
+						required
+					/>
+					<p class="hint">The unpaid principal amount. Interest is charged only on this.</p>
+				</div>
+
+				<div class="field">
+					<label for="rate">Annual interest rate (%)</label>
+					<input
+						id="rate"
+						name="rate"
+						type="number"
+						inputmode="decimal"
+						min="0"
+						max="100"
+						step="0.01"
+						value="21"
+						required
+					/>
+					<p class="hint">Maharashtra Model Bye-law 71 caps this at 21% p.a. (see note below).</p>
+				</div>
+
+				<div class="field">
+					<label for="due">Original due date</label>
+					<input id="due" name="due" type="date" required />
+				</div>
+
+				<div class="field">
+					<label for="paid">Date you actually pay</label>
+					<input id="paid" name="paid" type="date" value={today} required />
+				</div>
+
+				<div class="field field-wide">
+					<label for="grace">Grace period (days, no interest charged)</label>
+					<input
+						id="grace"
+						name="grace"
+						type="number"
+						inputmode="numeric"
+						min="0"
+						max="90"
+						step="1"
+						value="0"
+					/>
+					<p class="hint">Many societies allow 15 days for monthly bills. Enter 0 if unsure.</p>
+				</div>
+			</form>
+
+			<div id="result" class="result" hidden>
+				<div class="result-row">
+					<span>Days late (after grace period)</span>
+					<strong id="out-days">—</strong>
+				</div>
+				<div class="result-row">
+					<span>Interest on dues</span>
+					<strong id="out-interest" class="accent">—</strong>
+				</div>
+				<div class="result-row total">
+					<span>Total payable</span>
+					<strong id="out-total">—</strong>
+				</div>
+				<p class="result-note" id="out-note"></p>
+			</div>
+
+			<div id="empty" class="empty">
+				Fill in the fields above to see your estimated interest.
+			</div>
+		</section>
+
+		<section class="card prose">
+			<h2>How the calculation works</h2>
+			<p>The interest is computed with the standard simple-interest formula used across society bye-laws:</p>
+			<pre><code>Interest = Principal × Rate × (Days late ÷ 365)</code></pre>
+			<ul>
+				<li><strong>Principal</strong> — the unpaid maintenance dues only.</li>
+				<li><strong>Rate</strong> — the annual interest rate fixed by your society's General Body.</li>
+				<li>
+					<strong>Days late</strong> — days between the due date and the payment date,
+					minus any grace period. Interest is <em>not</em> charged on the interest
+					itself (no compounding).
+				</li>
+			</ul>
+		</section>
+
+		<section class="card prose">
+			<h2>State &amp; bye-law context</h2>
+			<div class="callout">
+				<strong>Maharashtra (Model Bye-law 71):</strong> Societies may charge
+				<strong>simple interest up to 21% per annum</strong> (or a lower rate fixed by the
+				General Body) on outstanding dues. Compound interest is not permitted. Some
+				sources mention a <em>proposal</em> to cap this at 12% — as of early 2026 this
+				remains a draft and is <strong>not yet law</strong>; 21% is still the documented
+				ceiling. Always check your society's registered bye-laws and the General Body
+				resolution fixing the rate.
+			</div>
+			<p>
+				Rates and grace periods vary by state and by society. This tool lets you enter the
+				rate your society actually applies, so it works regardless of state.
+			</p>
+		</section>
+
+		<section class="disclaimer">
+			<p>
+				<strong>Disclaimer:</strong> This calculator provides an estimate for
+				informational purposes only and is not legal, financial, or tax advice. The
+				actual interest your society can charge depends on its registered bye-laws and a
+				valid General Body resolution. For disputes, consult your society's managing
+				committee or the relevant cooperative authority.
+			</p>
+		</section>
+	</main>
+
+	<footer class="site-footer">
+		<div class="container">
+			<p>Free housing society maintenance interest calculator · Simple interest, India</p>
+		</div>
+	</footer>
 </Layout>
+
+<style>
+	.site-header {
+		background: var(--primary);
+		color: #fff;
+	}
+	.site-header .container {
+		display: flex;
+		align-items: baseline;
+		gap: 12px;
+		padding: 16px 20px;
+		flex-wrap: wrap;
+	}
+	.brand {
+		font-weight: 600;
+		font-size: 16px;
+	}
+	.brand-sub {
+		font-size: 12px;
+		color: #c9ccd2;
+	}
+
+	.hero {
+		padding: 48px 0 24px;
+	}
+	.hero h1 {
+		font-size: 30px;
+		line-height: 1.2;
+		letter-spacing: -0.5px;
+		margin: 0 0 12px;
+	}
+	.lead {
+		color: var(--body);
+		font-size: 17px;
+		max-width: 64ch;
+		margin: 0;
+	}
+
+	.card {
+		background: var(--bg);
+		border-radius: var(--radius-lg);
+		box-shadow: var(--shadow-1), var(--shadow-2);
+		padding: 28px;
+		margin: 24px 0;
+	}
+
+	.card h2 {
+		font-size: 20px;
+		margin: 0 0 18px;
+		letter-spacing: -0.3px;
+	}
+
+	.grid {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 18px;
+	}
+	.field {
+		display: flex;
+		flex-direction: column;
+		gap: 6px;
+	}
+	.field-wide {
+		grid-column: 1 / -1;
+	}
+	label {
+		font-size: 14px;
+		font-weight: 600;
+		color: var(--ink);
+	}
+	input {
+		font: inherit;
+		padding: 10px 12px;
+		border: 1px solid var(--hairline-strong);
+		border-radius: var(--radius-sm);
+		background: var(--bg);
+		color: var(--ink);
+	}
+	input:focus {
+		outline: 2px solid var(--accent);
+		outline-offset: 1px;
+		border-color: var(--accent);
+	}
+	.hint {
+		margin: 0;
+		font-size: 12px;
+		color: var(--mute);
+	}
+
+	.result {
+		margin-top: 22px;
+		border-top: 1px solid var(--hairline);
+		padding-top: 18px;
+	}
+	.result-row {
+		display: flex;
+		justify-content: space-between;
+		align-items: baseline;
+		padding: 8px 0;
+		font-size: 15px;
+		color: var(--body);
+	}
+	.result-row strong {
+		font-size: 18px;
+		color: var(--ink);
+		font-variant-numeric: tabular-nums;
+	}
+	.result-row .accent {
+		color: var(--accent);
+	}
+	.result-row.total {
+		border-top: 1px solid var(--hairline);
+		margin-top: 4px;
+		padding-top: 12px;
+	}
+	.result-row.total strong {
+		font-size: 22px;
+	}
+	.result-note {
+		margin: 8px 0 0;
+		font-size: 13px;
+		color: var(--mute);
+	}
+
+	.empty {
+		margin-top: 18px;
+		font-size: 14px;
+		color: var(--mute);
+		text-align: center;
+		padding: 16px;
+		background: var(--bg-soft-2);
+		border-radius: var(--radius-md);
+	}
+
+	.prose p {
+		color: var(--body);
+	}
+	.prose pre {
+		background: var(--bg-soft-2);
+		border: 1px solid var(--hairline);
+		border-radius: var(--radius-md);
+		padding: 14px 16px;
+		overflow-x: auto;
+		font-family: var(--mono);
+		font-size: 14px;
+	}
+	.prose code {
+		font-family: var(--mono);
+		font-size: 0.95em;
+	}
+	.prose ul {
+		color: var(--body);
+		padding-left: 20px;
+	}
+
+	.callout {
+		background: var(--warning-bg);
+		color: var(--warning-fg);
+		border-radius: var(--radius-md);
+		padding: 14px 16px;
+		font-size: 14px;
+		margin-bottom: 14px;
+	}
+
+	.disclaimer {
+		margin: 8px 0 32px;
+	}
+	.disclaimer p {
+		font-size: 13px;
+		color: var(--mute);
+		background: var(--bg);
+		border: 1px solid var(--hairline);
+		border-radius: var(--radius-md);
+		padding: 14px 16px;
+		margin: 0;
+	}
+
+	.site-footer {
+		border-top: 1px solid var(--hairline);
+		padding: 24px 0 40px;
+		color: var(--mute);
+		font-size: 13px;
+	}
+
+	@media (max-width: 600px) {
+		.grid {
+			grid-template-columns: 1fr;
+		}
+		.hero {
+			padding: 32px 0 16px;
+		}
+		.hero h1 {
+			font-size: 24px;
+		}
+	}
+</style>
+
+<script>
+	const inr = new Intl.NumberFormat('en-IN', {
+		style: 'currency',
+		currency: 'INR',
+		maximumFractionDigits: 2,
+	});
+
+	const form = document.getElementById('calc-form') as HTMLFormElement;
+	const principalEl = document.getElementById('principal') as HTMLInputElement;
+	const rateEl = document.getElementById('rate') as HTMLInputElement;
+	const dueEl = document.getElementById('due') as HTMLInputElement;
+	const paidEl = document.getElementById('paid') as HTMLInputElement;
+	const graceEl = document.getElementById('grace') as HTMLInputElement;
+
+	const resultEl = document.getElementById('result') as HTMLElement;
+	const emptyEl = document.getElementById('empty') as HTMLElement;
+	const outDays = document.getElementById('out-days') as HTMLElement;
+	const outInterest = document.getElementById('out-interest') as HTMLElement;
+	const outTotal = document.getElementById('out-total') as HTMLElement;
+	const outNote = document.getElementById('out-note') as HTMLElement;
+
+	function parseDate(str: string): Date | null {
+		const parts = str.split('-').map(Number);
+		if (parts.length !== 3 || parts.some((n) => Number.isNaN(n))) return null;
+		return new Date(parts[0], parts[1] - 1, parts[2]);
+	}
+
+	function daysBetween(a: Date, b: Date): number {
+		return Math.round((b.getTime() - a.getTime()) / 86400000);
+	}
+
+	function calculate() {
+		const principal = parseFloat(principalEl.value);
+		const rate = parseFloat(rateEl.value);
+		const due = parseDate(dueEl.value);
+		const paid = parseDate(paidEl.value);
+		const grace = parseInt(graceEl.value, 10) || 0;
+
+		const valid =
+			principal > 0 && rate >= 0 && due && paid && paid >= due;
+
+		if (!valid) {
+			resultEl.hidden = true;
+			emptyEl.hidden = false;
+			emptyEl.textContent =
+				paid && due && paid < due
+					? 'Payment date is before the due date — no interest is charged.'
+					: 'Enter a valid dues amount, rate, and dates to see the estimate.';
+			return;
+		}
+
+		const rawDays = daysBetween(due, paid);
+		const delay = Math.max(0, rawDays - grace);
+		const interest = principal * (rate / 100) * (delay / 365);
+		const total = principal + interest;
+
+		outDays.textContent = String(delay);
+		outInterest.textContent = inr.format(interest);
+		outTotal.textContent = inr.format(total);
+		outNote.textContent =
+			delay === 0
+				? 'Paid within the grace period (or on time) — no interest applies.'
+				: `Simple interest only; not compounded on the interest amount. Based on ${rawDays} day(s) late minus ${grace} grace day(s).`;
+
+		resultEl.hidden = false;
+		emptyEl.hidden = true;
+	}
+
+	form.addEventListener('input', calculate);
+	calculate();
+</script>
