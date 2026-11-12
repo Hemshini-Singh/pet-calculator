@@ -85,22 +85,29 @@ npm run preview      # serve the built output locally
 | `/methodology/` | ⬜ Not started (Week 4) |
 | Brand assets | ✅ `favicon.svg`, `favicon.ico` (4 sizes), `og-default.png` (1200×630) |
 | Domain | ⬜ `petcalc.io` — RDAP-verified available, not yet registered |
-| Git | ⚠️ Repo exists (4 commits) but **git is not installed on this machine** — see below |
+| Git | ✅ Working — 5 commits, clean tree |
 
 **The publishing gate is enforced in code.** `canPublish()` in `src/data/breeds.ts` rejects any entry that is not human-verified, is missing sources, or has an empty `facts` block — so an unverified breed cannot accidentally reach production.
 
-### ⚠️ Git is not installed
+### Git
 
-`E:\new project\.git` holds valid history (initial Astro scaffold → design system → society calculator → pet project docs), but there is **no `git.exe` anywhere on this machine**, so nothing can be committed and the working tree currently diverges from `HEAD`.
+The repo has valid history and a clean working tree:
 
-Install Git, then:
-
-```bash
-git add -A
-git commit -m "feat: scaffold PetCalc - Astro + Tailwind v4, breed dataset layer, decision log"
+```
+f90b9c0  feat: scaffold PetCalc - Astro + Tailwind v4, breed dataset layer, decision log
+b73af4a  docs: replace default astro readme with pet calculator hub project details
+6a4d139  feat: add layout and index page for housing society interest calculator
+079d171  feat: initialize design system documentation for Vercel brand aesthetic
+1dc00ea  "Initial commit from Astro"
 ```
 
-Both projects have a `.gitattributes` forcing LF line endings, so the Windows-authored files won't churn when built on Linux (Cloudflare Pages).
+> **Where git lives.** The original install was at `D:\Git\cmd` — but **the D: drive no longer exists on this machine**, so git was unreachable from every terminal. The Antigravity IDE was still working because it falls back to the git bundled with GitHub Desktop:
+>
+> `C:\Users\Himanshu kumar\AppData\Local\GitHubDesktop\app-3.6.2\resources\app\git\cmd\git.exe` (git 2.53.0)
+>
+> That path has now been **prepended to your user PATH**, so git works from any new terminal. Restart the Antigravity IDE for it to pick up the change. The dead `D:\` entries were left in place — they are harmless no-ops, and they will work again if the drive is restored.
+>
+> Both projects have a `.gitattributes` forcing LF line endings, so Windows-authored files won't churn when built on Linux (Cloudflare Pages).
 
 ---
 
@@ -118,7 +125,29 @@ Cleaned 2026-11-12. What was removed and why:
 
 Also: `package.json` renamed `new-project` → `petcalc`; `site` URL now read from `astro.config.mjs` via `Astro.site` so canonical URLs can't drift from the config; `.gitignore` extended (env files, deploy caches, TS build info, editor dirs); `robots.txt` added.
 
-The society project at `E:\new project-society` received the same treatment: `DESIGN.md` and starter assets deleted, `robots.txt` and `@astrojs/sitemap` added, `site` wired up, package renamed.
+The society project at `E:\new project-society` received the same treatment: `DESIGN.md` and starter assets deleted, `robots.txt` and `@astrojs/sitemap` added, `site` wired up, package renamed. It also has its own git repo now (initial commit, clean tree).
+
+### 🔧 Also fixed: a broken Antigravity telemetry hook
+
+Your Gemini agent in Antigravity was blocked by a failing hook:
+
+```
+JSON hook "__googlecloudtools_datacloud_telemetry_PreToolUse_0_0" failed:
+Cannot find module '...\googlecloudtools.datacloud_telemetry\C:\Users\Himanshu kumar\...'
+```
+
+Two bugs in `~/.gemini/config/plugins/googlecloudtools.datacloud_telemetry/hooks.json`:
+
+1. **Absolute path in the command.** The hook runner resolves the command's script path *relative to the plugin directory*, so the absolute `C:\...\telemetry_hook_bundle.js` was being joined onto the plugin dir → `<pluginDir>\C:\Users\...` → module not found. The working `dak-telemetry` hook in `data-agent-kit-plugin` uses a relative path for exactly this reason.
+2. **`; exit 0` is not a separator in `cmd.exe`.** It echoes literally. Changed to `|| exit 0`, matching the working hook and valid in both `cmd` and `sh`.
+
+Fixed to:
+
+```json
+"command": "node telemetry_hook_bundle.js --agent_name gemini --install_source \"Antigravity IDE\" || exit 0"
+```
+
+Verified: returns `{"decision":"allow"}` — the correct non-blocking response. Original saved as `hooks.json.bak` alongside it. **Restart the Antigravity IDE** for the plugin change to load.
 
 ---
 

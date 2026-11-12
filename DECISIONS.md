@@ -345,7 +345,7 @@ Hard rules. Every one of these has a reason.
 
 > ⚠️ **`DESIGN.md` was deleted on 2026-11-12** (and again from the society project). It specified the Vercel design system, which D15 rejects. The live design tokens are the `@theme` block in `src/styles/global.css`.
 >
-> ⚠️ **Git is not installed on this machine.** `E:\new project\.git` holds valid history but no `git.exe` exists, so the working tree cannot be committed. Both projects have a `.gitattributes` forcing LF line endings. See README § "Git is not installed".
+> ✅ **Git works.** It was unreachable from the shell because the original install lived on the vanished `D:` drive; the IDE was using the copy bundled with GitHub Desktop. That path is now on the user PATH. Both repos are committed with clean trees.
 
 ---
 
