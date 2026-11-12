@@ -1,20 +1,134 @@
-# 🐾 Pet Calculator Hub Project
+# 🐾 PetCalc — Breed-Aware Pet Calculators
 
-This project was decided and validated through comprehensive data-driven SEO research in Antigravity.
+A global (US / UK / AU / CA) suite of breed-aware pet calculators, built on a proprietary dataset of 300+ breeds.
 
-## Research & Validation Summary
-- **Domain Focus:** Global Interactive Pet Calculators & Tools Suite
-- **Market Demand:** Over 1,600+ keywords, 20+ core high-intent queries with 10K–100K+ monthly searches
-- **Competition:** Low difficulty (KD 2–13), easily outrankable with dedicated interactive tools
-- **Tech Stack:** Astro (Static Site Generation), Tailwind CSS, Cloudflare Pages
+> **The calculator is not the product. The dataset is the product.**
+> Calculators are how people find the data and how Google indexes it.
 
-## Core Documents
-- [Full Conversation & Research Archive](file:///C:/Users/Himanshu%20kumar/.gemini/antigravity/brain/32d09855-e13a-4761-ab7e-0cf448c2d6c1/full-conversation-archive.md)
-- [Complete Site Architecture & Roadmap](file:///C:/Users/Himanshu%20kumar/.gemini/antigravity/brain/32d09855-e13a-4761-ab7e-0cf448c2d6c1/pet-calculator-site-plan.md)
+---
 
-## Next Steps
-When ready, scaffold the Astro project and implement the Phase 1 MVP calculators:
-1. Puppy Growth & Weight Calculator
-2. Cat Age & Cat Years to Human Years Converter
-3. Dog Age to Human Years Calculator
-4. Dog Food & Feeding Portion Calculator
+## 📄 Documentation
+
+| Document | Purpose |
+|---|---|
+| **[PROJECT.md](./PROJECT.md)** | **The build spec.** Strategy, moat/data model, tool portfolio, URL architecture, tech setup, 90-day schedule with gates, monetisation model, KPI dashboard, kill criteria, risk register. |
+| **[DECISIONS.md](./DECISIONS.md)** | **The reasoning.** Research journey, verification log, decision log (D1–D15), rejected options, corrections (R1–R5), open questions, outreach talking points, hard rules. |
+
+> Read PROJECT.md for **what** to build, DECISIONS.md for **why**. Where they disagree, PROJECT.md wins on what, DECISIONS.md wins on why.
+
+---
+
+## 🔍 Source research (external, read-only)
+
+| Document | Contents |
+|---|---|
+| [full-conversation-archive.md](file:///C:/Users/Himanshu%20kumar/.gemini/antigravity/brain/32d09855-e13a-4761-ab7e-0cf448c2d6c1/full-conversation-archive.md) | Nov 10 niche-selection summary |
+| [pet-calculator-site-plan.md](file:///C:/Users/Himanshu%20kumar/.gemini/antigravity/brain/32d09855-e13a-4761-ab7e-0cf448c2d6c1/pet-calculator-site-plan.md) | Original keyword list + tool ideas |
+| [ai-tools-directory-research.md](file:///C:/Users/Himanshu%20kumar/.gemini/antigravity/brain/32d09855-e13a-4761-ab7e-0cf448c2d6c1/ai-tools-directory-research.md) | Rejected-niche analysis |
+| [website-research-summary.md](file:///C:/Users/Himanshu%20kumar/.gemini/antigravity/brain/32d09855-e13a-4761-ab7e-0cf448c2d6c1/website-research-summary.md) | Earlier JEE / pSEO history |
+
+> These were the **input** to the plan, not the plan. PROJECT.md corrects three structural errors in them (tool ordering, monetisation priority, the assumption that breed pSEO was unclaimed) and adds a **completed live AI Overview audit** of the 5 head terms.
+
+---
+
+## 🏗️ Project structure
+
+```
+src/
+  data/
+    breeds.ts        ← THE PRODUCT. Breed dataset + publishing gate (canPublish)
+    growthCurves.ts  ← WSAVA size-class growth curves (5 curves, not 300)
+    formulas.ts      ← RER/MER, portions, growth prediction, age conversion,
+                       pregnancy timeline, BCS — each with its source string
+    tools.ts         ← Tool registry (single source of truth for nav/sitemap)
+  layouts/
+    Base.astro       ← SEO-complete layout: canonical, OG, JSON-LD
+                       (WebApplication + BreadcrumbList + FAQPage), fonts
+  pages/
+    index.astro      ← Home
+  styles/
+    global.css       ← Tailwind v4 @theme tokens (pet-appropriate, NOT Vercel)
+public/
+  robots.txt
+```
+
+### Related project
+
+The **Housing Society Maintenance Interest Calculator (India)** was originally built in this folder. It was relocated to **`E:\new project-society`** on 2026-11-12 (verified: clean `npm install` + successful build) and is retained as the India-first fallback. See its own README.
+
+---
+
+## 🚀 Getting started
+
+```bash
+npm install
+npm run dev          # http://localhost:4321
+npm run build        # → dist/  (+ sitemap-index.xml)
+npm run preview      # serve the built output locally
+```
+
+**Stack:** Astro 6 (SSG) · Tailwind CSS v4 (`@tailwindcss/vite`, no config file) · Cloudflare Pages · self-hosted variable fonts (`fontsource`) with `unicode-range` so browsers fetch only the latin subset.
+
+---
+
+## ✅ Current state
+
+| Area | Status |
+|---|---|
+| Astro + Tailwind v4 + sitemap scaffold | ✅ Working, builds clean |
+| `Base.astro` SEO layout (canonical, OG, JSON-LD, breadcrumbs) | ✅ |
+| Design tokens (`global.css` `@theme`) | ✅ |
+| Formula engine + WSAVA curves | ✅ Written, **not yet peer-verified** |
+| Breed dataset | 🔶 15 seed entries, **all `verified: false`** — none publishable yet |
+| Tool pages | 🔶 Registry ready; 0 of 10 built |
+| Breed pages | 🔶 0 of 300 |
+| `/methodology/` | ⬜ Not started (Week 4) |
+| Brand assets | ✅ `favicon.svg`, `favicon.ico` (4 sizes), `og-default.png` (1200×630) |
+| Domain | ⬜ `petcalc.io` — RDAP-verified available, not yet registered |
+| Git | ⚠️ Repo exists (4 commits) but **git is not installed on this machine** — see below |
+
+**The publishing gate is enforced in code.** `canPublish()` in `src/data/breeds.ts` rejects any entry that is not human-verified, is missing sources, or has an empty `facts` block — so an unverified breed cannot accidentally reach production.
+
+### ⚠️ Git is not installed
+
+`E:\new project\.git` holds valid history (initial Astro scaffold → design system → society calculator → pet project docs), but there is **no `git.exe` anywhere on this machine**, so nothing can be committed and the working tree currently diverges from `HEAD`.
+
+Install Git, then:
+
+```bash
+git add -A
+git commit -m "feat: scaffold PetCalc - Astro + Tailwind v4, breed dataset layer, decision log"
+```
+
+Both projects have a `.gitattributes` forcing LF line endings, so the Windows-authored files won't churn when built on Linux (Cloudflare Pages).
+
+---
+
+## 🧹 Workspace hygiene
+
+Cleaned 2026-11-12. What was removed and why:
+
+| Removed | Reason |
+|---|---|
+| `DESIGN.md` (Vercel spec) | Superseded — the live tokens are the `@theme` block in `src/styles/global.css` |
+| `src/assets/astro.svg`, `background.svg` | Astro starter art, unreferenced |
+| `.vscode/settings.json` (Python pytest) | Left over from an unrelated Python project — replaced with TS/Astro settings |
+| Astro-default `favicon.svg` / `favicon.ico` | Replaced with a brand paw mark (ICO = 4 PNG-compressed sizes) |
+| Missing `og-default.png` | Was referenced in `Base.astro` but never existed — a guaranteed 404 on every social share. Now generated. |
+
+Also: `package.json` renamed `new-project` → `petcalc`; `site` URL now read from `astro.config.mjs` via `Astro.site` so canonical URLs can't drift from the config; `.gitignore` extended (env files, deploy caches, TS build info, editor dirs); `robots.txt` added.
+
+The society project at `E:\new project-society` received the same treatment: `DESIGN.md` and starter assets deleted, `robots.txt` and `@astrojs/sitemap` added, `site` wired up, package renamed.
+
+---
+
+## 📌 Next action
+
+**PROJECT.md §15 — This Week's Checklist.**
+
+Immediate next steps, in order:
+
+1. **Register `petcalc.io`** (RDAP-verified available — check the `.io` *renewal* price first)
+2. **Audit the remaining 5 target keywords** for AI Overviews (checklist step 2)
+3. **Verify the 15 seed breed entries** against their cited sources and flip `verified: true`
+4. **Build `/tools/puppy-growth-calculator/`** — the flagship tool, and the page most likely to earn an AI Overview citation

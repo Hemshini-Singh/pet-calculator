@@ -1,0 +1,21 @@
+# Normalise line endings to LF in the repo, check out per-platform.
+# The project is authored on Windows and built on Linux (Cloudflare Pages),
+# so without this the working tree would churn between CRLF and LF.
+* text=auto eol=lf
+
+*.astro text eol=lf
+*.ts text eol=lf
+*.js text eol=lf
+*.mjs text eol=lf
+*.json text eol=lf
+*.css text eol=lf
+*.md text eol=lf
+*.txt text eol=lf
+*.xml text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+
+*.png binary
+*.ico binary
+*.woff2 binary
+*.woff binary
