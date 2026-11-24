@@ -16,7 +16,6 @@ interface Props {
 
 const { tool, faqs = [], howToSteps = [], showPetProfileBar = true } = Astro.props;
 
-const SITE = Astro.site?.toString().replace(/\/$/, '') ?? 'https://petconditionscore.com';
 const path = `/calculators/${tool.slug}/`;
 
 const related = liveTools()

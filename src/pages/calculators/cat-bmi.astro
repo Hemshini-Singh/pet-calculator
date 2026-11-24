@@ -532,6 +532,17 @@ const howToSteps = [
     if (p.has('rib')) ribEl.value = p.get('rib')!;
     if (p.has('leg')) legEl.value = p.get('leg')!;
 
+    function applySavedCatProfile() {
+      const activeId = getActivePetId();
+      const pet = getSavedPets().find((item) => item.id === activeId && item.species === 'cat');
+      if (!pet) return;
+      weightEl.value =
+        weightUnitEl.value === 'lb' ? String(kgToLb(pet.weightKg)) : String(pet.weightKg);
+    }
+
+    applySavedCatProfile();
+    window.addEventListener('pcs:pet-change', applySavedCatProfile);
+
     render();
   </script>
 </CalculatorShell>
