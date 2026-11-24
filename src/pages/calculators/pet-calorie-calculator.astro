@@ -1,0 +1,411 @@
+---
+import CalculatorShell, { type FaqItem } from '../../components/CalculatorShell.astro';
+import { BREEDS } from '../../data/breeds';
+import { getTool } from '../../data/tools';
+
+const tool = getTool('pet-calorie-calculator')!;
+
+const faqs: FaqItem[] = [
+  {
+    question: 'How is Resting Energy Requirement (RER) calculated for dogs and cats?',
+    answer:
+      'Both dogs and cats follow the NRC (2006) metabolic scaling formula: RER = 70 × (body weight in kg)^0.75. Daily Maintenance Energy Requirement (MER) multiplies RER by a factor for life stage, neuter status, and activity level.',
+  },
+  {
+    question: 'Should I use kcal/cup or kcal/100g from my pet food bag?',
+    answer:
+      'North American pet food bags print "kcal/cup" (ME) and "kcal/kg", whereas European labels often print "kcal/100g". This calculator lets you enter whichever unit is printed on your bag and converts daily calories into grams, cups, and standard 170 g cans.',
+  },
+  {
+    question: 'How many treats can my dog or cat have each day?',
+    answer:
+      'Veterinary nutritionists recommend keeping treats and chews to at most 10% of total daily calories so the main diet remains nutritionally balanced.',
+  },
+];
+---
+
+<CalculatorShell tool={tool} faqs={faqs}>
+  <div slot="calculator" class="grid gap-6 lg:grid-cols-12 lg:items-start">
+    <div class="space-y-5 rounded-xl border border-hairline bg-surface p-6 lg:col-span-6">
+      <div class="flex flex-wrap items-center justify-between gap-2">
+        <h2 class="text-xl font-medium">Pet &amp; Food Details</h2>
+        <div class="inline-flex rounded-md border border-hairline bg-canvas-2 p-0.5 text-xs">
+          <button
+            type="button"
+            data-cal-species="dog"
+            class="rounded bg-surface px-3 py-1 font-medium text-ink cursor-pointer"
+          >
+            Dog
+          </button>
+          <button
+            type="button"
+            data-cal-species="cat"
+            class="rounded px-3 py-1 font-medium text-mute cursor-pointer"
+          >
+            Cat
+          </button>
+        </div>
+      </div>
+
+      <div class="grid gap-4 sm:grid-cols-2">
+        <div class="sm:col-span-2">
+          <label for="cal-breed" class="block text-xs font-medium text-ink">Breed (optional)</label>
+          <select id="cal-breed" class="pcs-input mt-1.5">
+            <option value="">Mixed / Standard</option>
+            {BREEDS.map((b) => (
+              <option value={b.slug} data-species={b.species}>
+                {b.name} ({b.species})
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div>
+          <label for="cal-weight" class="block text-xs font-medium text-ink">Body Weight</label>
+          <div class="mt-1.5 flex">
+            <input
+              id="cal-weight"
+              type="number"
+              min="0.5"
+              max="120"
+              step="0.1"
+              value="18"
+              class="pcs-input rounded-r-none border-r-0"
+            />
+            <select
+              id="cal-weight-unit"
+              aria-label="Weight unit"
+              class="rounded-r-md border border-hairline-strong bg-canvas-2 px-2.5 font-mono text-xs font-medium text-ink"
+            >
+              <option value="kg">kg</option>
+              <option value="lb">lb</option>
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label for="cal-stage" class="block text-xs font-medium text-ink">Life Stage</label>
+          <select id="cal-stage" class="pcs-input mt-1.5">
+            <option value="puppy">Puppy / Kitten (growing)</option>
+            <option value="adult" selected>Adult</option>
+            <option value="senior">Senior</option>
+          </select>
+        </div>
+
+        <div>
+          <label for="cal-neutered" class="block text-xs font-medium text-ink">Neuter Status</label>
+          <select id="cal-neutered" class="pcs-input mt-1.5">
+            <option value="true" selected>Spayed / Neutered</option>
+            <option value="false">Intact</option>
+          </select>
+        </div>
+
+        <div>
+          <label for="cal-activity" class="block text-xs font-medium text-ink">Activity Level</label>
+          <select id="cal-activity" class="pcs-input mt-1.5">
+            <option value="low">Low / Indoor / Weight watch</option>
+            <option value="moderate" selected>Moderate daily activity</option>
+            <option value="high">Active / High energy</option>
+            <option value="working">Working / Sport</option>
+          </select>
+        </div>
+
+        <div>
+          <label for="cal-goal" class="block text-xs font-medium text-ink">BCS Goal Adjustment</label>
+          <select id="cal-goal" class="pcs-input mt-1.5">
+            <option value="0.85">Weight Loss (-15%)</option>
+            <option value="1.0" selected>Maintain Ideal Weight (5/9)</option>
+            <option value="1.1">Weight Gain (+10%)</option>
+          </select>
+        </div>
+
+        <div>
+          <label for="cal-meals" class="block text-xs font-medium text-ink">Meals Per Day</label>
+          <select id="cal-meals" class="pcs-input mt-1.5">
+            <option value="2" selected>2 meals / day</option>
+            <option value="3">3 meals / day</option>
+            <option value="1">1 meal / day</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="border-t border-hairline pt-4">
+        <p class="text-xs font-medium text-ink">Food Bag Energy Density</p>
+        <div class="mt-2 grid gap-3 sm:grid-cols-2">
+          <div class="flex">
+            <input
+              id="cal-energy"
+              type="number"
+              min="50"
+              max="800"
+              step="5"
+              value="380"
+              class="pcs-input rounded-r-none border-r-0"
+            />
+            <select
+              id="cal-energy-unit"
+              aria-label="Food energy unit"
+              class="rounded-r-md border border-hairline-strong bg-canvas-2 px-2 font-mono text-xs font-medium text-ink"
+            >
+              <option value="kcal_cup" selected>kcal/cup</option>
+              <option value="kcal_100g">kcal/100g</option>
+            </select>
+          </div>
+          <div>
+            <input
+              id="cal-cup-grams"
+              type="number"
+              min="60"
+              max="180"
+              step="1"
+              value="112"
+              class="pcs-input"
+              aria-label="Grams per cup"
+              title="Grams per standard 8 oz cup (usually 100–120 g)"
+            />
+            <p class="mt-1 font-mono text-[10px] text-mute">Grams per 8 oz cup (default 112g)</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="pcs-result-panel rounded-xl bg-surface-dark p-6 text-white lg:sticky lg:top-22 lg:col-span-6">
+      <div class="flex items-center justify-between border-b border-zinc-800 pb-4">
+        <p class="font-mono text-xs uppercase tracking-wider text-zinc-400">
+          Daily Energy &amp; Portion Plan
+        </p>
+        <span class="rounded bg-emerald-900/60 px-2.5 py-1 font-mono text-xs font-semibold text-emerald-300">
+          NRC (2006)
+        </span>
+      </div>
+
+      <div class="mt-5 flex flex-wrap items-baseline justify-between gap-4">
+        <div>
+          <p class="text-xs text-zinc-400">Daily Calorie Target</p>
+          <p id="cal-res-kcal" class="mt-1 font-mono text-4xl font-semibold tabular-nums">
+            976 kcal
+          </p>
+        </div>
+        <div class="text-right">
+          <p class="text-xs text-zinc-400">Resting (RER)</p>
+          <p id="cal-res-rer" class="mt-1 font-mono text-xl font-semibold text-zinc-300 tabular-nums">
+            612 kcal
+          </p>
+        </div>
+      </div>
+
+      <div class="mt-6 grid grid-cols-2 gap-3 border-t border-zinc-800 pt-5">
+        <div class="rounded-lg border border-zinc-800 bg-zinc-900/80 p-3.5">
+          <p class="font-mono text-[11px] uppercase tracking-wider text-zinc-400">Dry Kibble / Day</p>
+          <p id="cal-res-dry" class="mt-1 font-mono text-xl font-semibold text-white tabular-nums">
+            2.6 cups
+          </p>
+          <p id="cal-res-dry-grams" class="mt-0.5 font-mono text-xs text-zinc-400">288 g/day</p>
+        </div>
+
+        <div class="rounded-lg border border-zinc-800 bg-zinc-900/80 p-3.5">
+          <p class="font-mono text-[11px] uppercase tracking-wider text-zinc-400">Per Meal Split</p>
+          <p id="cal-res-meal" class="mt-1 font-mono text-xl font-semibold text-emerald-300 tabular-nums">
+            1.3 cups
+          </p>
+          <p id="cal-res-meal-sub" class="mt-0.5 font-mono text-xs text-zinc-400">144 g × 2 meals</p>
+        </div>
+
+        <div class="rounded-lg border border-zinc-800 bg-zinc-900/80 p-3.5">
+          <p class="font-mono text-[11px] uppercase tracking-wider text-zinc-400">Wet Canned Only</p>
+          <p id="cal-res-wet" class="mt-1 font-mono text-lg font-semibold text-zinc-100 tabular-nums">
+            6.4 cans
+          </p>
+          <p id="cal-res-wet-grams" class="mt-0.5 font-mono text-xs text-zinc-400">1,084 g (170g cans)</p>
+        </div>
+
+        <div class="rounded-lg border border-zinc-800 bg-zinc-900/80 p-3.5">
+          <p class="font-mono text-[11px] uppercase tracking-wider text-zinc-400">10% Treat Budget</p>
+          <p id="cal-res-treats" class="mt-1 font-mono text-lg font-semibold text-amber-300 tabular-nums">
+            98 kcal
+          </p>
+          <p class="mt-0.5 text-[11px] text-zinc-400">Max safe daily treats</p>
+        </div>
+      </div>
+
+      <div class="mt-5 border-t border-zinc-800 pt-4">
+        <p class="font-mono text-[11px] uppercase tracking-wider text-zinc-400">
+          Live NRC Equation
+        </p>
+        <p id="cal-res-formula" class="mt-1.5 font-mono text-xs text-zinc-300 tabular-nums"></p>
+      </div>
+    </div>
+  </div>
+
+  <div slot="editorial">
+    <section>
+      <h2>Why Pet-Native Food Density Matters</h2>
+      <p class="mt-3 text-sm leading-relaxed text-body">
+        Dry kibble ranges widely from <strong>300 to over 500 kcal per cup</strong>. Feeding "2
+        cups" of a calorie-dense working formula instead of a weight-management kibble can quietly
+        add 40% more calories per day. Checking the guaranteed analysis on your bag and splitting
+        into measured meals keeps your pet at an ideal 5/9 Body Condition Score.
+      </p>
+    </section>
+  </div>
+
+  <script>
+    import { BREEDS } from '../../data/breeds';
+    import { portions, rer } from '../../data/formulas';
+    import {
+      buildShareUrl,
+      getActivePetId,
+      getSavedPets,
+      getUnitSystem,
+      kgToLb,
+      lbToKg,
+      savePetProfile,
+    } from '../../scripts/petProfile';
+
+    let species: 'dog' | 'cat' = 'dog';
+    const speciesBtns = document.querySelectorAll<HTMLButtonElement>('[data-cal-species]');
+    const breedEl = document.getElementById('cal-breed') as HTMLSelectElement;
+    const weightEl = document.getElementById('cal-weight') as HTMLInputElement;
+    const weightUnitEl = document.getElementById('cal-weight-unit') as HTMLSelectElement;
+    const stageEl = document.getElementById('cal-stage') as HTMLSelectElement;
+    const neuteredEl = document.getElementById('cal-neutered') as HTMLSelectElement;
+    const activityEl = document.getElementById('cal-activity') as HTMLSelectElement;
+    const goalEl = document.getElementById('cal-goal') as HTMLSelectElement;
+    const mealsEl = document.getElementById('cal-meals') as HTMLSelectElement;
+    const energyEl = document.getElementById('cal-energy') as HTMLInputElement;
+    const energyUnitEl = document.getElementById('cal-energy-unit') as HTMLSelectElement;
+    const cupGramsEl = document.getElementById('cal-cup-grams') as HTMLInputElement;
+
+    function getWeightKg(): number {
+      const v = parseFloat(weightEl.value) || 0;
+      return weightUnitEl.value === 'lb' ? lbToKg(v) : v;
+    }
+
+    function render() {
+      const weightKg = getWeightKg();
+      const breed = BREEDS.find((b) => b.slug === breedEl.value);
+      const gramsPerCup = Math.max(50, parseFloat(cupGramsEl.value) || 112);
+      const rawEnergy = Math.max(50, parseFloat(energyEl.value) || 380);
+      const dryKcalPerGram =
+        energyUnitEl.value === 'kcal_cup' ? rawEnergy / gramsPerCup : rawEnergy / 100;
+
+      const base = portions(weightKg, {
+        lifeStage: stageEl.value as any,
+        neutered: neuteredEl.value === 'true',
+        activity: activityEl.value as any,
+        breed,
+        dryKcalPerGram,
+        gramsPerCupDry: gramsPerCup,
+      });
+
+      const goalFactor = parseFloat(goalEl.value) || 1;
+      const kcal = Math.round(base.kcalPerDay * goalFactor);
+      const dryGrams = Math.round(kcal / dryKcalPerGram);
+      const dryCups = Math.round((dryGrams / gramsPerCup) * 10) / 10;
+      const wetGrams = Math.round((kcal / 90) * 100);
+      const wetCans = Math.round((wetGrams / 170) * 10) / 10;
+      const treats = Math.round(kcal * 0.1);
+      const meals = Number(mealsEl.value) || 2;
+      const rerVal = Math.round(rer(weightKg));
+
+      document.getElementById('cal-res-kcal')!.textContent = `${kcal.toLocaleString()} kcal`;
+      document.getElementById('cal-res-rer')!.textContent = `${rerVal.toLocaleString()} kcal`;
+      document.getElementById('cal-res-dry')!.textContent = `${dryCups} cups`;
+      document.getElementById('cal-res-dry-grams')!.textContent = `${dryGrams} g/day`;
+      document.getElementById('cal-res-meal')!.textContent =
+        `${(Math.round((dryCups / meals) * 10) / 10)} cups`;
+      document.getElementById('cal-res-meal-sub')!.textContent =
+        `${Math.round(dryGrams / meals)} g × ${meals} meal${meals > 1 ? 's' : ''}`;
+      document.getElementById('cal-res-wet')!.textContent = `${wetCans} cans`;
+      document.getElementById('cal-res-wet-grams')!.textContent = `${wetGrams} g (170g cans)`;
+      document.getElementById('cal-res-treats')!.textContent = `${treats} kcal`;
+      document.getElementById('cal-res-formula')!.textContent =
+        `RER = 70 × (${weightKg.toFixed(1)})^0.75 = ${rerVal} kcal → Target = ${kcal} kcal/day`;
+    }
+
+    function setSpecies(next: 'dog' | 'cat') {
+      species = next;
+      speciesBtns.forEach((b) => {
+        const active = b.dataset.calSpecies === species;
+        b.classList.toggle('bg-surface', active);
+        b.classList.toggle('text-ink', active);
+        b.classList.toggle('text-mute', !active);
+      });
+      Array.from(breedEl.options).forEach((opt) => {
+        if (!opt.value) return;
+        opt.hidden = opt.dataset.species !== species;
+      });
+      if (breedEl.selectedOptions[0]?.hidden) breedEl.value = '';
+      if (species === 'cat' && parseFloat(weightEl.value) > 12 && weightUnitEl.value === 'kg') {
+        weightEl.value = '4.5';
+        cupGramsEl.value = '100';
+      } else if (species === 'dog' && parseFloat(weightEl.value) < 6 && weightUnitEl.value === 'kg' && !breedEl.value) {
+        weightEl.value = '18';
+        cupGramsEl.value = '112';
+      }
+      render();
+    }
+
+    speciesBtns.forEach((btn) =>
+      btn.addEventListener('click', () => setSpecies(btn.dataset.calSpecies as 'dog' | 'cat')),
+    );
+
+    let prevWt = weightUnitEl.value;
+    weightUnitEl.addEventListener('change', () => {
+      const v = parseFloat(weightEl.value) || 0;
+      if (prevWt === 'kg' && weightUnitEl.value === 'lb') weightEl.value = String(kgToLb(v));
+      if (prevWt === 'lb' && weightUnitEl.value === 'kg') weightEl.value = String(lbToKg(v).toFixed(1));
+      prevWt = weightUnitEl.value;
+      render();
+    });
+
+    function syncUnit(unit: string) {
+      const target = unit === 'imperial' ? 'lb' : 'kg';
+      if (weightUnitEl.value !== target) {
+        weightUnitEl.value = target;
+        weightUnitEl.dispatchEvent(new Event('change'));
+      }
+    }
+    window.addEventListener('pcs:unit-change', (e: any) => syncUnit(e.detail?.unit || getUnitSystem()));
+    syncUnit(getUnitSystem());
+
+    [breedEl, weightEl, stageEl, neuteredEl, activityEl, goalEl, mealsEl, energyEl, energyUnitEl, cupGramsEl].forEach(
+      (el) => {
+        el.addEventListener('input', render);
+        el.addEventListener('change', render);
+      },
+    );
+
+    const activeId = getActivePetId();
+    const pet = getSavedPets().find((p) => p.id === activeId);
+    if (pet) {
+      setSpecies(pet.species);
+      if (pet.breedSlug) breedEl.value = pet.breedSlug;
+      weightEl.value = weightUnitEl.value === 'lb' ? String(kgToLb(pet.weightKg)) : String(pet.weightKg);
+      neuteredEl.value = String(pet.neutered);
+    }
+
+    window.addEventListener('pcs:request-save-pet', () => {
+      const name = window.prompt('Name for this pet profile:', species === 'dog' ? 'My Dog' : 'My Cat');
+      if (name === null) return;
+      savePetProfile({
+        name,
+        species,
+        breedSlug: breedEl.value || undefined,
+        weightKg: Math.round(getWeightKg() * 10) / 10,
+        neutered: neuteredEl.value === 'true',
+      });
+    });
+
+    window.addEventListener('pcs:copy-share-link', () => {
+      window.history.replaceState({}, '', buildShareUrl({ sp: species, w: weightEl.value, wu: weightUnitEl.value }));
+    });
+    window.addEventListener('pcs:reset-calculator', () => {
+      setSpecies('dog');
+      weightEl.value = weightUnitEl.value === 'lb' ? '40' : '18';
+      render();
+    });
+
+    render();
+  </script>
+</CalculatorShell>

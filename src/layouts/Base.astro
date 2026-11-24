@@ -6,13 +6,12 @@ import '../styles/global.css';
 interface Props {
   title: string;
   description: string;
-  /** Absolute path, e.g. "/tools/puppy-growth-calculator". */
+  /** Absolute path, e.g. "/calculators/dog-bcs/". */
   path?: string;
   /** JSON-LD graph entries, merged into the page graph. */
   schema?: Array<Record<string, unknown>>;
-  /** 'website' for the home page, 'article' for guides. */
+  /** 'website' for home/indexes, 'article' for guides/calculators. */
   ogType?: 'website' | 'article';
-  /** Set to false to hide the global header (e.g. on a share/print view). */
   showHeader?: boolean;
 }
 
@@ -25,15 +24,10 @@ const {
   showHeader = true,
 } = Astro.props;
 
-const SITE = Astro.site?.toString().replace(/\/$/, '') ?? 'https://petcalc.io';
-const BRAND = 'PetCalc';
+const SITE = Astro.site?.toString().replace(/\/$/, '') ?? 'https://petconditionscore.com';
+const BRAND = 'Pet Condition Score';
 const url = SITE + path;
 
-/**
- * Brand suffix is appended only when the page title does not already contain
- * it. Titles are kept under 60 characters including the suffix — PROJECT.md
- * §6.2 / §8 publish gate.
- */
 const fullTitle = title.includes(BRAND) ? title : `${title} | ${BRAND}`;
 
 const breadcrumbs = [
@@ -48,7 +42,7 @@ const graph = [
     name: title,
     description,
     url,
-    applicationCategory: 'UtilitiesApplication',
+    applicationCategory: 'HealthApplication',
     operatingSystem: 'Any',
     isAccessibleForFree: true,
     publisher: {
@@ -84,7 +78,7 @@ const graph = [
     <meta name="description" content={description} />
     <link rel="canonical" href={url} />
     <meta name="robots" content="index, follow, max-image-preview:large" />
-    <meta name="theme-color" content="#b8541f" />
+    <meta name="theme-color" content="#1B4332" />
 
     <meta property="og:type" content={ogType} />
     <meta property="og:site_name" content={BRAND} />
@@ -105,30 +99,81 @@ const graph = [
   <body>
     {
       showHeader && (
-        <header class="border-b border-hairline bg-surface">
+        <header class="sticky top-0 z-30 border-b border-hairline bg-canvas/95 backdrop-blur-sm">
           <div class="shell flex h-16 items-center justify-between gap-4">
-            <a href="/" class="flex items-center gap-2 no-underline">
-              <span class="font-display text-xl font-semibold tracking-tight text-ink">
-                PetCalc
+            <a href="/" class="flex items-center gap-2.5 no-underline">
+              <span
+                class="flex h-7 w-7 items-center justify-center rounded-md bg-brand font-mono text-xs font-semibold text-white"
+                aria-hidden="true"
+              >
+                PCS
               </span>
-              <span class="hidden text-xs text-mute sm:inline">
-                breed-aware pet calculators
+              <span class="font-display text-lg font-medium tracking-tight text-ink sm:text-xl">
+                Pet Condition Score
               </span>
             </a>
-            <nav aria-label="Primary" class="flex items-center gap-1 text-sm">
-              <a href="/tools/" class="rounded-full px-3 py-1.5 text-body hover:bg-canvas-2">
-                Tools
+
+            <nav aria-label="Primary" class="hidden items-center gap-1 text-sm md:flex">
+              <a
+                href="/calculators/"
+                class="rounded-md px-3 py-1.5 text-body no-underline transition hover:bg-canvas-2 hover:text-ink"
+              >
+                All Calculators
               </a>
-              <a href="/breeds/" class="rounded-full px-3 py-1.5 text-body hover:bg-canvas-2">
-                Breeds
+              <a
+                href="/calculators/dog-bcs/"
+                class="rounded-md px-3 py-1.5 text-body no-underline transition hover:bg-canvas-2 hover:text-ink"
+              >
+                Dog BCS
+              </a>
+              <a
+                href="/calculators/cat-bmi/"
+                class="rounded-md px-3 py-1.5 text-body no-underline transition hover:bg-canvas-2 hover:text-ink"
+              >
+                Cat BMI
+              </a>
+              <a
+                href="/calculators/dog-pregnancy/"
+                class="rounded-md px-3 py-1.5 text-body no-underline transition hover:bg-canvas-2 hover:text-ink"
+              >
+                Pregnancy
               </a>
               <a
                 href="/methodology/"
-                class="rounded-full px-3 py-1.5 text-body hover:bg-canvas-2"
+                class="rounded-md px-3 py-1.5 text-body no-underline transition hover:bg-canvas-2 hover:text-ink"
               >
                 Methodology
               </a>
             </nav>
+
+            <div class="flex items-center gap-2">
+              <div
+                class="inline-flex rounded-md border border-hairline bg-canvas-2 p-0.5 text-xs"
+                role="group"
+                aria-label="Global unit system"
+              >
+                <button
+                  type="button"
+                  data-global-unit="metric"
+                  class="rounded px-2.5 py-1 font-mono font-medium transition cursor-pointer"
+                >
+                  kg/cm
+                </button>
+                <button
+                  type="button"
+                  data-global-unit="imperial"
+                  class="rounded px-2.5 py-1 font-mono font-medium transition cursor-pointer"
+                >
+                  lb/in
+                </button>
+              </div>
+              <a
+                href="/calculators/"
+                class="rounded-md border border-hairline bg-surface px-2.5 py-1.5 text-xs font-medium text-ink no-underline hover:bg-canvas-2 md:hidden"
+              >
+                Tools
+              </a>
+            </div>
           </div>
         </header>
       )
@@ -138,47 +183,118 @@ const graph = [
       <slot />
     </main>
 
-    <footer class="mt-20 border-t border-hairline bg-surface">
-      <div class="shell py-12">
-        <div class="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
+    <footer class="mt-20 border-t border-hairline bg-surface-dark text-white">
+      <div class="shell py-14">
+        <div class="grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
           <div>
-            <p class="font-display text-lg font-semibold">PetCalc</p>
-            <p class="mt-2 text-sm text-body">
-              Free, source-cited calculators for dog and cat growth, feeding and age —
-              built on a breed-level dataset.
+            <p class="font-display text-lg font-medium text-white">Pet Condition Score</p>
+            <p class="mt-2.5 text-sm leading-relaxed text-zinc-400">
+              Clinically-informed pet health calculators and veterinary condition references.
+              Built on WSAVA, NRC (2006), and published morphometric formulas.
             </p>
+            <p class="mt-4 font-mono text-xs text-zinc-500">petconditionscore.com</p>
           </div>
           <div>
-            <p class="font-mono text-xs uppercase tracking-wider text-mute">Calculators</p>
+            <p class="font-mono text-xs uppercase tracking-wider text-zinc-400">Body & Nutrition</p>
             <ul class="mt-3 space-y-2 text-sm">
-              <li><a href="/tools/puppy-growth-calculator/">Puppy growth calculator</a></li>
-              <li><a href="/tools/puppy-weight-calculator/">Puppy weight calculator</a></li>
-              <li><a href="/tools/dog-food-calculator/">Dog food calculator</a></li>
+              <li>
+                <a href="/calculators/dog-bcs/" class="text-zinc-300 no-underline hover:text-white">
+                  Dog BCS &amp; BMI Calculator
+                </a>
+              </li>
+              <li>
+                <a href="/calculators/cat-bmi/" class="text-zinc-300 no-underline hover:text-white">
+                  Cat BMI (FBMI) Calculator
+                </a>
+              </li>
+              <li>
+                <a href="/calculators/pet-calorie-calculator/" class="text-zinc-300 no-underline hover:text-white">
+                  Daily Calorie &amp; Food Calculator
+                </a>
+              </li>
             </ul>
           </div>
           <div>
-            <p class="font-mono text-xs uppercase tracking-wider text-mute">Dataset</p>
+            <p class="font-mono text-xs uppercase tracking-wider text-zinc-400">Pregnancy & Growth</p>
             <ul class="mt-3 space-y-2 text-sm">
-              <li><a href="/breeds/">Breed profiles</a></li>
-              <li><a href="/methodology/">How we calculate</a></li>
-              <li><a href="/methodology/#sources">Sources</a></li>
+              <li>
+                <a href="/calculators/dog-pregnancy/" class="text-zinc-300 no-underline hover:text-white">
+                  Dog Pregnancy Timeline
+                </a>
+              </li>
+              <li>
+                <a href="/calculators/cat-pregnancy/" class="text-zinc-300 no-underline hover:text-white">
+                  Cat Pregnancy Timeline
+                </a>
+              </li>
+              <li>
+                <a href="/calculators/gestational-week/" class="text-zinc-300 no-underline hover:text-white">
+                  Gestational Week Calculator
+                </a>
+              </li>
+              <li>
+                <a href="/calculators/puppy-growth-calculator/" class="text-zinc-300 no-underline hover:text-white">
+                  Puppy Weight Predictor
+                </a>
+              </li>
             </ul>
           </div>
           <div>
-            <p class="font-mono text-xs uppercase tracking-wider text-mute">Legal</p>
+            <p class="font-mono text-xs uppercase tracking-wider text-zinc-400">Reference</p>
             <ul class="mt-3 space-y-2 text-sm">
-              <li><a href="/disclaimer/">Disclaimer</a></li>
-              <li><a href="/privacy/">Privacy</a></li>
+              <li>
+                <a href="/calculators/" class="text-zinc-300 no-underline hover:text-white">
+                  All Calculators
+                </a>
+              </li>
+              <li>
+                <a href="/calculators/pet-age-converter/" class="text-zinc-300 no-underline hover:text-white">
+                  Pet Age Converter
+                </a>
+              </li>
+              <li>
+                <a href="/methodology/" class="text-zinc-300 no-underline hover:text-white">
+                  Methodology &amp; Citations
+                </a>
+              </li>
             </ul>
           </div>
         </div>
 
-        <p class="mt-10 border-t border-hairline pt-6 text-xs leading-relaxed text-mute">
-          <strong>Disclaimer:</strong> PetCalc provides educational estimates for
-          informational purposes only and is not veterinary advice. Always confirm
-          feeding amounts and growth expectations with your own veterinarian.
+        <p class="mt-10 border-t border-zinc-800 pt-6 text-xs leading-relaxed text-zinc-400">
+          <strong class="text-zinc-200">Veterinary &amp; Medical Disclaimer:</strong> Pet Condition
+          Score provides educational estimates derived from published veterinary and clinical
+          literature for informational purposes only. It is not a substitute for professional
+          veterinary or medical examination, diagnosis, or treatment.
         </p>
       </div>
     </footer>
+
+    <script>
+      import { getUnitSystem, setUnitSystem, type UnitSystem } from '../scripts/petProfile';
+
+      function syncGlobalUnitButtons() {
+        const current = getUnitSystem();
+        document.querySelectorAll<HTMLButtonElement>('[data-global-unit]').forEach((btn) => {
+          const isActive = btn.dataset.globalUnit === current;
+          btn.classList.toggle('bg-surface', isActive);
+          btn.classList.toggle('text-ink', isActive);
+          btn.classList.toggle('shadow-xs', isActive);
+          btn.classList.toggle('text-mute', !isActive);
+        });
+      }
+
+      syncGlobalUnitButtons();
+      document.querySelectorAll<HTMLButtonElement>('[data-global-unit]').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const next = btn.dataset.globalUnit as UnitSystem;
+          if (next === 'metric' || next === 'imperial') {
+            setUnitSystem(next);
+            syncGlobalUnitButtons();
+          }
+        });
+      });
+      window.addEventListener('pcs:unit-change', syncGlobalUnitButtons);
+    </script>
   </body>
 </html>

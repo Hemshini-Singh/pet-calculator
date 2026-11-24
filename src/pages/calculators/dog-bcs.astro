@@ -1,0 +1,682 @@
+---
+import CalculatorShell, { type FaqItem } from '../../components/CalculatorShell.astro';
+import { BREEDS } from '../../data/breeds';
+import { getTool } from '../../data/tools';
+
+const tool = getTool('dog-bcs')!;
+const dogBreeds = BREEDS.filter((b) => b.species === 'dog');
+
+const faqs: FaqItem[] = [
+  {
+    question: 'Why is a Body Condition Score (BCS) better than a Dog BMI calculator?',
+    answer:
+      'Dogs vary enormously in skeletal build—a healthy Whippet and a healthy English Bulldog have completely different height-to-weight ratios. A simple height/weight BMI misclassifies stocky or long-backed breeds, whereas the veterinary WSAVA 9-point BCS evaluates subcutaneous fat over the ribs, waist silhouette, and abdominal tuck.',
+  },
+  {
+    question: 'What is the ideal Body Condition Score for a dog?',
+    answer:
+      'On the standard 9-point WSAVA scale, a score of 5/9 (and sometimes 4/9 for athletic working breeds) is ideal. You should be able to easily feel each rib under a thin layer of fat without pressing hard, see a clear waist behind the ribs from above, and observe an upward abdominal tuck from the side.',
+  },
+  {
+    question: 'How fast should an overweight dog lose weight?',
+    answer:
+      'Veterinary nutritionists (AAHA / WSAVA) recommend a safe weight-loss rate of 1% to 2% of current body weight per week. Rapid crash dieting can lead to muscle loss and nutrient deficiencies.',
+  },
+  {
+    question: 'How accurate is the ideal weight estimate from BCS?',
+    answer:
+      'Clinical studies (Laflamme, 1997) show each 1-point BCS step above 5/9 represents roughly 10% excess body weight. Dividing current weight by [1 + 0.10 × (BCS − 5)] gives a practical clinical target weight to review with your veterinarian.',
+  },
+];
+
+const howToSteps = [
+  {
+    name: 'Select your dog’s breed and enter current weight',
+    text: 'Choose a breed (or Mixed / Average) and enter weight in kg or lb.',
+  },
+  {
+    name: 'Complete the 3-step physical check (ribs, waist, abdominal tuck)',
+    text: 'Feel along the rib cage, look down at the waist behind the ribs, and check the side profile.',
+  },
+  {
+    name: 'Review BCS score, ideal target weight, and safe daily calories',
+    text: 'Use the generated WSAVA score, ideal weight target, and NRC calorie plan at your next vet check.',
+  },
+];
+---
+
+<CalculatorShell tool={tool} faqs={faqs} howToSteps={howToSteps}>
+  <div slot="calculator" class="grid gap-6 lg:grid-cols-12 lg:items-start">
+    <!-- Left Column: Guided Inputs -->
+    <div class="space-y-6 rounded-xl border border-hairline bg-surface p-6 lg:col-span-6">
+      <div>
+        <h2 class="text-xl font-medium">1. Dog Profile &amp; Measurements</h2>
+        <p class="mt-1 text-xs text-mute">Updates instantly as you adjust any field.</p>
+      </div>
+
+      <div class="grid gap-4 sm:grid-cols-2">
+        <div class="sm:col-span-2">
+          <label for="dog-breed" class="block text-xs font-medium text-ink">
+            Breed (optional — defaults to mixed/general)
+          </label>
+          <select id="dog-breed" class="pcs-input mt-1.5">
+            <option value="">Mixed / Average Dog</option>
+            {dogBreeds.map((b) => (
+              <option value={b.slug}>{b.name}</option>
+            ))}
+          </select>
+        </div>
+
+        <div>
+          <label for="dog-weight" class="block text-xs font-medium text-ink">
+            Current Weight
+          </label>
+          <div class="mt-1.5 flex">
+            <input
+              id="dog-weight"
+              type="number"
+              min="0.5"
+              max="120"
+              step="0.1"
+              value="22"
+              class="pcs-input rounded-r-none border-r-0"
+            />
+            <select
+              id="dog-weight-unit"
+              aria-label="Weight unit"
+              class="rounded-r-md border border-hairline-strong bg-canvas-2 px-2.5 font-mono text-xs font-medium text-ink"
+            >
+              <option value="kg">kg</option>
+              <option value="lb">lb</option>
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label for="dog-height" class="block text-xs font-medium text-ink">
+            Shoulder Height <span class="text-mute">(optional, for BMI)</span>
+          </label>
+          <div class="mt-1.5 flex">
+            <input
+              id="dog-height"
+              type="number"
+              min="10"
+              max="110"
+              step="0.5"
+              value="48"
+              class="pcs-input rounded-r-none border-r-0"
+            />
+            <select
+              id="dog-height-unit"
+              aria-label="Height unit"
+              class="rounded-r-md border border-hairline-strong bg-canvas-2 px-2.5 font-mono text-xs font-medium text-ink"
+            >
+              <option value="cm">cm</option>
+              <option value="in">in</option>
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label for="dog-neutered" class="block text-xs font-medium text-ink">
+            Spay / Neuter Status
+          </label>
+          <select id="dog-neutered" class="pcs-input mt-1.5">
+            <option value="true" selected>Spayed / Neutered</option>
+            <option value="false">Intact</option>
+          </select>
+        </div>
+
+        <div>
+          <label for="dog-activity" class="block text-xs font-medium text-ink">
+            Activity Level
+          </label>
+          <select id="dog-activity" class="pcs-input mt-1.5">
+            <option value="low">Low / Couch &amp; short walks</option>
+            <option value="moderate" selected>Moderate (30–60 min/day)</option>
+            <option value="high">Active / High energy</option>
+            <option value="working">Working / Sport dog</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Guided Tactile & Visual WSAVA Check -->
+      <div class="border-t border-hairline pt-5">
+        <div class="flex items-center justify-between gap-2">
+          <h2 class="text-xl font-medium">2. Guided Physical Check</h2>
+          <span class="font-mono text-[11px] text-mute">WSAVA 1–9 Scale</span>
+        </div>
+
+        <div class="mt-4 space-y-4">
+          <div>
+            <label for="check-ribs" class="block text-xs font-medium text-ink">
+              A. Rib Palpation (run hands gently along rib cage)
+            </label>
+            <select id="check-ribs" class="pcs-input mt-1.5">
+              <option value="2">Ribs clearly visible from a distance, zero fat cover</option>
+              <option value="4">Ribs easily felt with minimal fat covering</option>
+              <option value="5" selected>Ribs easily palpable with thin fat cover, not visible</option>
+              <option value="6">Ribs palpable with slight excess fat layer</option>
+              <option value="7">Ribs difficult to feel under moderate fat layer</option>
+              <option value="9">Ribs cannot be felt under thick fat deposits</option>
+            </select>
+          </div>
+
+          <div>
+            <label for="check-waist" class="block text-xs font-medium text-ink">
+              B. Waist Check (looking straight down from above)
+            </label>
+            <select id="check-waist" class="pcs-input mt-1.5">
+              <option value="2">Extreme hourglass pinch, hip bones prominent</option>
+              <option value="4">Pronounced waist behind ribs</option>
+              <option value="5" selected>Clear, gentle waist visible behind ribs</option>
+              <option value="6">Waist is subtle or barely noticeable</option>
+              <option value="7">Waist absent; back looks broad and flat</option>
+              <option value="9">Markedly widened torso; waist bulges outward</option>
+            </select>
+          </div>
+
+          <div>
+            <label for="check-tuck" class="block text-xs font-medium text-ink">
+              C. Abdominal Tuck (viewed from the side)
+            </label>
+            <select id="check-tuck" class="pcs-input mt-1.5">
+              <option value="2">Severe upward abdominal tuck</option>
+              <option value="5" selected>Smooth upward tummy tuck behind ribs</option>
+              <option value="6">Minimal tuck; abdomen nearly level</option>
+              <option value="8">No tuck; belly sags or droops downward</option>
+            </select>
+          </div>
+
+          <div>
+            <div class="flex items-center justify-between text-xs">
+              <label for="bcs-manual" class="font-medium text-ink">
+                Fine-tune BCS Score directly (1–9)
+              </label>
+              <span id="bcs-slider-val" class="font-mono font-semibold text-brand">5 / 9</span>
+            </div>
+            <input
+              id="bcs-manual"
+              type="range"
+              min="1"
+              max="9"
+              step="1"
+              value="5"
+              class="mt-2 w-full accent-brand cursor-pointer"
+            />
+            <div class="mt-1 flex justify-between font-mono text-[10px] text-mute">
+              <span>1 (Emaciated)</span>
+              <span>5 (Ideal)</span>
+              <span>9 (Severely Obese)</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Column: High-Contrast Result Panel (DESIGN.md §5.2) -->
+    <div class="pcs-result-panel rounded-xl bg-surface-dark p-6 text-white lg:sticky lg:top-22 lg:col-span-6">
+      <div class="flex items-center justify-between border-b border-zinc-800 pb-4">
+        <p class="font-mono text-xs uppercase tracking-wider text-zinc-400">
+          Assessment Result
+        </p>
+        <span
+          id="res-badge"
+          class="rounded-md bg-emerald-900/60 px-2.5 py-1 font-mono text-xs font-semibold text-emerald-300"
+        >
+          Ideal Condition
+        </span>
+      </div>
+
+      <div class="mt-5 flex flex-wrap items-baseline justify-between gap-4">
+        <div>
+          <p class="text-xs text-zinc-400">Body Condition Score</p>
+          <p id="res-bcs-big" class="mt-1 font-mono text-4xl font-semibold tabular-nums">
+            5 <span class="text-xl font-normal text-zinc-400">/ 9</span>
+          </p>
+        </div>
+        <div class="text-right">
+          <p class="text-xs text-zinc-400">Est. Body Fat</p>
+          <p id="res-fat" class="mt-1 font-mono text-2xl font-semibold text-zinc-100 tabular-nums">
+            ~18%
+          </p>
+        </div>
+      </div>
+
+      <!-- 1–9 Visual Scale Meter -->
+      <div class="mt-5">
+        <div class="grid grid-cols-9 gap-1" id="bcs-scale-bars" aria-hidden="true">
+          {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((n) => (
+            <div
+              data-scale-step={n}
+              class="flex h-7 items-center justify-center rounded font-mono text-xs font-medium bg-zinc-800 text-zinc-400 transition"
+            >
+              {n}
+            </div>
+          ))}
+        </div>
+        <p id="res-desc" class="mt-3 text-sm leading-relaxed text-zinc-300">
+          Ribs are palpable but not visible, with a clear waist when viewed from above. Ideal weight.
+        </p>
+      </div>
+
+      <!-- Key Metrics Grid -->
+      <div class="mt-6 grid grid-cols-2 gap-3 border-t border-zinc-800 pt-5">
+        <div class="rounded-lg border border-zinc-800 bg-zinc-900/80 p-3.5">
+          <p class="font-mono text-[11px] uppercase tracking-wider text-zinc-400">
+            Estimated Ideal Weight
+          </p>
+          <p id="res-ideal-weight" class="mt-1 font-mono text-xl font-semibold text-white tabular-nums">
+            22.0 kg
+          </p>
+          <p id="res-weight-delta" class="mt-0.5 text-xs text-zinc-400">
+            At target weight
+          </p>
+        </div>
+
+        <div class="rounded-lg border border-zinc-800 bg-zinc-900/80 p-3.5">
+          <p class="font-mono text-[11px] uppercase tracking-wider text-zinc-400">
+            Target Daily Intake
+          </p>
+          <p id="res-kcal" class="mt-1 font-mono text-xl font-semibold text-white tabular-nums">
+            1,148 kcal
+          </p>
+          <p id="res-kcal-note" class="mt-0.5 text-xs text-zinc-400">
+            Maintenance NRC factor
+          </p>
+        </div>
+
+        <div class="rounded-lg border border-zinc-800 bg-zinc-900/80 p-3.5">
+          <p class="font-mono text-[11px] uppercase tracking-wider text-zinc-400">
+            Canine BMI (Reference)
+          </p>
+          <p id="res-bmi" class="mt-1 font-mono text-lg font-semibold text-zinc-200 tabular-nums">
+            95.5 kg/m²
+          </p>
+          <p class="mt-0.5 text-[11px] text-zinc-400">Frame-dependent index</p>
+        </div>
+
+        <div class="rounded-lg border border-zinc-800 bg-zinc-900/80 p-3.5">
+          <p class="font-mono text-[11px] uppercase tracking-wider text-zinc-400">
+            Safe Weekly Change
+          </p>
+          <p id="res-weekly" class="mt-1 font-mono text-lg font-semibold text-zinc-200 tabular-nums">
+            Maintain
+          </p>
+          <p class="mt-0.5 text-[11px] text-zinc-400">AAHA 1–2%/week guideline</p>
+        </div>
+      </div>
+
+      <!-- Breed-Specific Clinical Insight -->
+      <div id="res-breed-box" class="mt-5 hidden rounded-lg border border-zinc-700 bg-zinc-900 p-4 text-xs leading-relaxed text-zinc-300">
+        <p class="font-mono text-[11px] uppercase tracking-wider text-emerald-300" id="res-breed-name"></p>
+        <p class="mt-1" id="res-breed-note"></p>
+      </div>
+
+      <!-- Live Worked Formula + Source Citation -->
+      <div class="mt-5 border-t border-zinc-800 pt-4">
+        <p class="font-mono text-[11px] uppercase tracking-wider text-zinc-400">
+          Live Formula &amp; Citation
+        </p>
+        <p id="res-formula-live" class="mt-1.5 font-mono text-xs text-zinc-300 tabular-nums">
+          Ideal = 22.0 / (1 + 0.10 &times; (5 - 5)) = 22.0 kg
+        </p>
+        <p class="mt-2 text-[11px] leading-relaxed text-zinc-400">
+          Cited: WSAVA 9-Point Body Condition Score Guidelines; Laflamme DP (1997); NRC (2006) RER
+          = 70 &times; (kg)<sup>0.75</sup>.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Editorial Section -->
+  <div slot="editorial" class="space-y-8">
+    <section>
+      <h2>How to Read Your Dog’s Body Condition Score</h2>
+      <p class="mt-3 text-sm leading-relaxed text-body">
+        Because canine breeds range from 2 kg Chihuahuas to 80 kg Great Danes, veterinarians rely
+        on the <strong>WSAVA 9-Point Body Condition Score (BCS)</strong> rather than human-style
+        BMI alone. Each 1-point step above <strong>5/9</strong> adds approximately 10% excess body
+        weight above your dog’s healthy frame weight.
+      </p>
+    </section>
+
+    <section>
+      <h2>WSAVA 1–9 Dog Body Condition Reference Table</h2>
+      <div class="mt-4 overflow-x-auto rounded-lg border border-hairline bg-surface">
+        <table>
+          <thead>
+            <tr>
+              <th>BCS Score</th>
+              <th>Classification</th>
+              <th>Rib Palpation &amp; Silhouette</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="font-mono">1–3 / 9</td>
+              <td>Underweight</td>
+              <td>Ribs, spine, and pelvic bones easily visible with minimal fat cover.</td>
+            </tr>
+            <tr>
+              <td class="font-mono font-semibold text-brand">4–5 / 9</td>
+              <td class="font-semibold text-brand">Ideal</td>
+              <td>Ribs easily felt without excess fat; clear waist from above; smooth abdominal tuck.</td>
+            </tr>
+            <tr>
+              <td class="font-mono">6–7 / 9</td>
+              <td>Overweight</td>
+              <td>Ribs harder to feel beneath fat layer; waist barely visible or absent.</td>
+            </tr>
+            <tr>
+              <td class="font-mono">8–9 / 9</td>
+              <td>Obese</td>
+              <td>Ribs unpalpable under thick fat; heavy abdominal droop and lumbar fat pads.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    import { BREEDS } from '../../data/breeds';
+    import { assessDogCondition } from '../../data/formulas';
+    import {
+      buildShareUrl,
+      cmToIn,
+      getActivePetId,
+      getSavedPets,
+      getUnitSystem,
+      inToCm,
+      kgToLb,
+      lbToKg,
+      savePetProfile,
+    } from '../../scripts/petProfile';
+
+    const breedEl = document.getElementById('dog-breed') as HTMLSelectElement;
+    const weightEl = document.getElementById('dog-weight') as HTMLInputElement;
+    const weightUnitEl = document.getElementById('dog-weight-unit') as HTMLSelectElement;
+    const heightEl = document.getElementById('dog-height') as HTMLInputElement;
+    const heightUnitEl = document.getElementById('dog-height-unit') as HTMLSelectElement;
+    const neuteredEl = document.getElementById('dog-neutered') as HTMLSelectElement;
+    const activityEl = document.getElementById('dog-activity') as HTMLSelectElement;
+
+    const ribsEl = document.getElementById('check-ribs') as HTMLSelectElement;
+    const waistEl = document.getElementById('check-waist') as HTMLSelectElement;
+    const tuckEl = document.getElementById('check-tuck') as HTMLSelectElement;
+    const bcsManualEl = document.getElementById('bcs-manual') as HTMLInputElement;
+    const bcsSliderVal = document.getElementById('bcs-slider-val')!;
+
+    let manualOverride = false;
+
+    function getWeightKg(): number {
+      const val = parseFloat(weightEl.value) || 0;
+      return weightUnitEl.value === 'lb' ? lbToKg(val) : val;
+    }
+
+    function getHeightCm(): number {
+      const val = parseFloat(heightEl.value) || 0;
+      return heightUnitEl.value === 'in' ? inToCm(val) : val;
+    }
+
+    function fmtWeight(kg: number): string {
+      return weightUnitEl.value === 'lb' ? `${kgToLb(kg)} lb` : `${kg.toFixed(1)} kg`;
+    }
+
+    function updateUrlSilent() {
+      const url = buildShareUrl({
+        breed: breedEl.value || undefined,
+        w: weightEl.value,
+        wu: weightUnitEl.value,
+        h: heightEl.value,
+        hu: heightUnitEl.value,
+        bcs: bcsManualEl.value,
+      });
+      window.history.replaceState({}, '', url);
+    }
+
+    function render() {
+      if (!manualOverride) {
+        const avg = Math.round(
+          (Number(ribsEl.value) + Number(waistEl.value) + Number(tuckEl.value)) / 3,
+        );
+        bcsManualEl.value = String(avg);
+      }
+
+      const bcs = Number(bcsManualEl.value);
+      bcsSliderVal.textContent = `${bcs} / 9`;
+
+      const weightKg = getWeightKg();
+      const heightCm = getHeightCm();
+      const breed = BREEDS.find((b) => b.slug === breedEl.value);
+
+      const res = assessDogCondition({
+        weightKg,
+        bcs,
+        shoulderHeightCm: heightCm,
+        neutered: neuteredEl.value === 'true',
+        activity: activityEl.value as any,
+        breed,
+      });
+
+      document.getElementById('res-bcs-big')!.innerHTML =
+        `${res.bcs} <span class="text-xl font-normal text-zinc-400">/ 9</span>`;
+      document.getElementById('res-fat')!.textContent = `~${res.estimatedBodyFatPct}%`;
+      document.getElementById('res-desc')!.textContent = res.description;
+      document.getElementById('res-ideal-weight')!.textContent = fmtWeight(res.idealWeightKg);
+
+      const deltaKg = Math.abs(res.weightDeltaKg);
+      document.getElementById('res-weight-delta')!.textContent =
+        res.weightDeltaKg > 0.2
+          ? `~${fmtWeight(deltaKg)} above ideal`
+          : res.weightDeltaKg < -0.2
+            ? `~${fmtWeight(deltaKg)} below ideal`
+            : 'Right at ideal target';
+
+      document.getElementById('res-kcal')!.textContent = `${res.targetKcal.toLocaleString()} kcal`;
+      document.getElementById('res-kcal-note')!.textContent =
+        res.bcs > 5
+          ? `Weight-loss plan (maint: ${res.maintenanceKcal.toLocaleString()} kcal)`
+          : res.bcs < 5
+            ? 'Weight-gain plan (+15%)'
+            : 'Maintenance NRC (2006) target';
+
+      document.getElementById('res-bmi')!.textContent =
+        res.bmi !== undefined ? `${res.bmi} kg/m²` : '—';
+      document.getElementById('res-weekly')!.textContent =
+        res.safeWeeklyLossKg > 0
+          ? `-${fmtWeight(res.safeWeeklyLossKg)}/wk`
+          : res.bcs < 5
+            ? 'Gradual gain'
+            : 'Maintain';
+
+      const badge = document.getElementById('res-badge')!;
+      badge.textContent = res.label;
+      badge.className = 'rounded-md px-2.5 py-1 font-mono text-xs font-semibold ';
+      if (res.category === 'Ideal') {
+        badge.className += 'bg-emerald-900/60 text-emerald-300';
+      } else if (res.category === 'Underweight') {
+        badge.className += 'bg-amber-900/60 text-amber-300';
+      } else if (res.category === 'Overweight') {
+        badge.className += 'bg-orange-900/60 text-orange-300';
+      } else {
+        badge.className += 'bg-red-900/60 text-red-300';
+      }
+
+      document.querySelectorAll<HTMLElement>('[data-scale-step]').forEach((stepEl) => {
+        const step = Number(stepEl.dataset.scaleStep);
+        const active = step === res.bcs;
+        stepEl.classList.toggle('bg-emerald-500', active && res.category === 'Ideal');
+        stepEl.classList.toggle('bg-amber-500', active && res.category === 'Underweight');
+        stepEl.classList.toggle('bg-orange-500', active && res.category === 'Overweight');
+        stepEl.classList.toggle('bg-red-500', active && res.category === 'Obese');
+        stepEl.classList.toggle('text-zinc-950', active);
+        stepEl.classList.toggle('font-bold', active);
+        stepEl.classList.toggle('bg-zinc-800', !active);
+        stepEl.classList.toggle('text-zinc-400', !active);
+      });
+
+      const breedBox = document.getElementById('res-breed-box')!;
+      if (breed) {
+        breedBox.classList.remove('hidden');
+        document.getElementById('res-breed-name')!.textContent =
+          `${breed.name} (${breed.sizeClass.toUpperCase()} CLASS)`;
+        const mMin = fmtWeight(breed.adultWeightKg.male.min);
+        const mMax = fmtWeight(breed.adultWeightKg.male.max);
+        document.getElementById('res-breed-note')!.textContent =
+          `Typical adult male range: ${mMin}–${mMax}. ${breed.bcsCaution || breed.facts.exerciseNeed}`;
+      } else {
+        breedBox.classList.add('hidden');
+      }
+
+      const factor = bcs >= 5 ? 1 + (bcs - 5) * 0.1 : Math.max(0.55, 1 - (5 - bcs) * 0.1);
+      document.getElementById('res-formula-live')!.textContent =
+        `Ideal = ${weightKg.toFixed(1)} kg ÷ ${factor.toFixed(2)} = ${res.idealWeightKg.toFixed(1)} kg | RER = 70 × (${(bcs > 5 ? res.idealWeightKg : weightKg).toFixed(1)})^0.75`;
+    }
+
+    // Inline unit auto-conversion (like Omni, without unit bloat)
+    let prevWeightUnit = weightUnitEl.value;
+    weightUnitEl.addEventListener('change', () => {
+      const val = parseFloat(weightEl.value) || 0;
+      if (prevWeightUnit === 'kg' && weightUnitEl.value === 'lb') {
+        weightEl.value = String(kgToLb(val));
+      } else if (prevWeightUnit === 'lb' && weightUnitEl.value === 'kg') {
+        weightEl.value = String(lbToKg(val).toFixed(1));
+      }
+      prevWeightUnit = weightUnitEl.value;
+      render();
+    });
+
+    let prevHeightUnit = heightUnitEl.value;
+    heightUnitEl.addEventListener('change', () => {
+      const val = parseFloat(heightEl.value) || 0;
+      if (prevHeightUnit === 'cm' && heightUnitEl.value === 'in') {
+        heightEl.value = String(cmToIn(val));
+      } else if (prevHeightUnit === 'in' && heightUnitEl.value === 'cm') {
+        heightEl.value = String(inToCm(val));
+      }
+      prevHeightUnit = heightUnitEl.value;
+      render();
+    });
+
+    function syncUnitPreference(unit: string) {
+      const targetWeight = unit === 'imperial' ? 'lb' : 'kg';
+      const targetHeight = unit === 'imperial' ? 'in' : 'cm';
+      if (weightUnitEl.value !== targetWeight) {
+        weightUnitEl.value = targetWeight;
+        weightUnitEl.dispatchEvent(new Event('change'));
+      }
+      if (heightUnitEl.value !== targetHeight) {
+        heightUnitEl.value = targetHeight;
+        heightUnitEl.dispatchEvent(new Event('change'));
+      }
+    }
+
+    window.addEventListener('pcs:unit-change', (e: any) => {
+      syncUnitPreference(e.detail?.unit || getUnitSystem());
+    });
+
+    [breedEl, weightEl, heightEl, neuteredEl, activityEl].forEach((el) => {
+      el.addEventListener('input', render);
+      el.addEventListener('change', render);
+    });
+
+    [ribsEl, waistEl, tuckEl].forEach((el) => {
+      el.addEventListener('change', () => {
+        manualOverride = false;
+        render();
+      });
+    });
+
+    bcsManualEl.addEventListener('input', () => {
+      manualOverride = true;
+      render();
+    });
+
+    // Query params & saved pet loading
+    const params = new URLSearchParams(window.location.search);
+    if (params.has('w')) {
+      if (params.get('wu') === 'lb') {
+        weightUnitEl.value = 'lb';
+        prevWeightUnit = 'lb';
+      }
+      weightEl.value = params.get('w') || '22';
+      if (params.get('hu') === 'in') {
+        heightUnitEl.value = 'in';
+        prevHeightUnit = 'in';
+      }
+      if (params.get('h')) heightEl.value = params.get('h')!;
+      if (params.get('breed')) breedEl.value = params.get('breed')!;
+      if (params.get('bcs')) {
+        manualOverride = true;
+        bcsManualEl.value = params.get('bcs')!;
+      }
+    } else {
+      syncUnitPreference(getUnitSystem());
+      const activeId = getActivePetId();
+      const pet = getSavedPets().find((p) => p.id === activeId && p.species === 'dog');
+      if (pet) {
+        if (pet.breedSlug) breedEl.value = pet.breedSlug;
+        weightEl.value =
+          weightUnitEl.value === 'lb' ? String(kgToLb(pet.weightKg)) : String(pet.weightKg);
+        neuteredEl.value = String(pet.neutered);
+        if (pet.bcs) {
+          manualOverride = true;
+          bcsManualEl.value = String(pet.bcs);
+        }
+      }
+    }
+
+    window.addEventListener('pcs:pet-change', () => {
+      const activeId = getActivePetId();
+      const pet = getSavedPets().find((p) => p.id === activeId && p.species === 'dog');
+      if (!pet) return;
+      if (pet.breedSlug) breedEl.value = pet.breedSlug;
+      weightEl.value =
+        weightUnitEl.value === 'lb' ? String(kgToLb(pet.weightKg)) : String(pet.weightKg);
+      neuteredEl.value = String(pet.neutered);
+      if (pet.bcs) {
+        manualOverride = true;
+        bcsManualEl.value = String(pet.bcs);
+      }
+      render();
+    });
+
+    window.addEventListener('pcs:request-save-pet', () => {
+      const defaultName = breedEl.value
+        ? BREEDS.find((b) => b.slug === breedEl.value)?.name || 'My Dog'
+        : 'My Dog';
+      const name = window.prompt('Name for this dog profile (saved locally on your device):', defaultName);
+      if (name === null) return;
+      savePetProfile({
+        name,
+        species: 'dog',
+        breedSlug: breedEl.value || undefined,
+        weightKg: Math.round(getWeightKg() * 10) / 10,
+        neutered: neuteredEl.value === 'true',
+        bcs: Number(bcsManualEl.value),
+      });
+    });
+
+    window.addEventListener('pcs:copy-share-link', updateUrlSilent);
+
+    window.addEventListener('pcs:reset-calculator', () => {
+      breedEl.value = '';
+      weightUnitEl.value = getUnitSystem() === 'imperial' ? 'lb' : 'kg';
+      prevWeightUnit = weightUnitEl.value;
+      weightEl.value = weightUnitEl.value === 'lb' ? '48.5' : '22';
+      heightUnitEl.value = getUnitSystem() === 'imperial' ? 'in' : 'cm';
+      prevHeightUnit = heightUnitEl.value;
+      heightEl.value = heightUnitEl.value === 'in' ? '18.9' : '48';
+      ribsEl.value = '5';
+      waistEl.value = '5';
+      tuckEl.value = '5';
+      manualOverride = false;
+      window.history.replaceState({}, '', window.location.pathname);
+      render();
+    });
+
+    render();
+  </script>
+</CalculatorShell>

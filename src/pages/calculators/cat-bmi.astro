@@ -1,0 +1,537 @@
+---
+import CalculatorShell, { type FaqItem } from '../../components/CalculatorShell.astro';
+import { getTool } from '../../data/tools';
+
+const tool = getTool('cat-bmi')!;
+
+const faqs: FaqItem[] = [
+  {
+    question: 'How do I measure my cat for the Feline Body Mass Index (FBMI)?',
+    answer:
+      'Have your cat stand calmly on all four legs. Use a soft sewing tape measure to record (1) rib cage circumference at the 9th rib (just behind the front legs) and (2) lower hind-leg length from the center of the kneecap (patella) down to the point of the hock/ankle (calcaneus).',
+  },
+  {
+    question: 'What is a healthy Cat BMI (FBMI) score?',
+    answer:
+      'An FBMI between 15% and 29.9% indicates normal/healthy feline body fat. Scores below 15% suggest underweight, 30% to 41.9% indicate overweight, and 42% or higher indicate obesity.',
+  },
+  {
+    question: 'Can a cat lose weight quickly?',
+    answer:
+      'No. Cats should never be put on crash diets or fasted. Rapid weight loss in overweight cats can trigger hepatic lipidosis (fatty liver disease), a life-threatening condition. Aim for slow weight reduction of roughly 0.5% to 1% of body weight per week under veterinary supervision.',
+  },
+];
+
+const howToSteps = [
+  {
+    name: 'Measure 9th-rib chest circumference',
+    text: 'Wrap a flexible tape snugly (not tightly) around the widest part of the rib cage behind the front legs.',
+  },
+  {
+    name: 'Measure lower back leg length',
+    text: 'Measure from the patella (knee) down to the calcaneus (hock/ankle) in cm or inches.',
+  },
+  {
+    name: 'Review instant FBMI score and equivalent 1–9 BCS',
+    text: 'Check whether your cat falls into Underweight, Normal, Overweight, or Obese and view the target rib circumference.',
+  },
+];
+---
+
+<CalculatorShell tool={tool} faqs={faqs} howToSteps={howToSteps}>
+  <div slot="calculator" class="grid gap-6 lg:grid-cols-12 lg:items-start">
+    <!-- Left Column: Inputs + Clean Anatomical SVG Diagram -->
+    <div class="space-y-6 rounded-xl border border-hairline bg-surface p-6 lg:col-span-6">
+      <div class="flex flex-wrap items-center justify-between gap-2">
+        <h2 class="text-xl font-medium">Feline Morphometric Inputs</h2>
+        <div class="inline-flex rounded-md border border-hairline bg-canvas-2 p-0.5 text-xs">
+          <button
+            type="button"
+            data-cat-mode="forward"
+            class="rounded bg-surface px-2.5 py-1 font-medium text-ink cursor-pointer"
+          >
+            Calculate FBMI
+          </button>
+          <button
+            type="button"
+            data-cat-mode="reverse"
+            class="rounded px-2.5 py-1 font-medium text-mute cursor-pointer"
+          >
+            Target Rib Size
+          </button>
+        </div>
+      </div>
+
+      <!-- Minimalist SVG Anatomical Measurement Diagram -->
+      <figure class="rounded-lg border border-hairline bg-canvas p-4">
+        <svg
+          viewBox="0 0 420 190"
+          class="mx-auto h-auto w-full max-w-sm"
+          role="img"
+          aria-label="Diagram showing 9th rib circumference and patella-to-hock hind leg measurement on a standing cat"
+        >
+          <!-- Minimalist standing cat silhouette -->
+          <path
+            d="M86 84 C74 72 60 66 56 50 C54 42 58 34 64 36 L68 46 L76 46 L82 36 C86 35 88 43 86 52 C92 60 112 64 148 64 L254 64 C284 64 300 72 312 62 C326 50 338 30 356 26 C362 25 364 32 356 38 C340 46 334 68 310 78 L302 104 L302 162 L288 162 L286 118 L272 162 L258 162 L262 108 L142 108 L138 162 L124 162 L122 118 L108 162 L94 162 L100 100 C88 98 82 90 86 84 Z"
+            fill="#F4F3EE"
+            stroke="#18181B"
+            stroke-width="2"
+            stroke-linejoin="round"
+          />
+          <!-- 9th rib loop -->
+          <ellipse
+            cx="166"
+            cy="86"
+            rx="7"
+            ry="24"
+            fill="none"
+            stroke="#1B4332"
+            stroke-width="2.5"
+            stroke-dasharray="4 3"
+          />
+          <line x1="166" y1="60" x2="166" y2="28" stroke="#1B4332" stroke-width="1.5" />
+          <text x="166" y="20" text-anchor="middle" font-size="11" font-family="monospace" fill="#1B4332" font-weight="600">
+            1. Rib Cage (9th rib)
+          </text>
+
+          <!-- Hind leg patella-to-hock line -->
+          <line x1="296" y1="114" x2="296" y2="158" stroke="#C25E3D" stroke-width="3" />
+          <circle cx="296" cy="114" r="3.5" fill="#C25E3D" />
+          <circle cx="296" cy="158" r="3.5" fill="#C25E3D" />
+          <text x="312" y="138" font-size="11" font-family="monospace" fill="#C25E3D" font-weight="600">
+            2. Leg (knee→hock)
+          </text>
+        </svg>
+        <figcaption class="mt-2 text-center text-[11px] text-mute">
+          Keep cat standing squarely on all four paws; hold tape snug without compressing fur.
+        </figcaption>
+      </figure>
+
+      <div class="grid gap-4 sm:grid-cols-2">
+        <div id="cat-rib-group">
+          <label for="cat-rib" class="block text-xs font-medium text-ink">
+            1. Rib Cage Circumference (9th rib)
+          </label>
+          <div class="mt-1.5 flex">
+            <input
+              id="cat-rib"
+              type="number"
+              min="10"
+              max="90"
+              step="0.5"
+              value="36"
+              class="pcs-input rounded-r-none border-r-0"
+            />
+            <select
+              id="cat-rib-unit"
+              aria-label="Rib unit"
+              class="rounded-r-md border border-hairline-strong bg-canvas-2 px-2.5 font-mono text-xs font-medium text-ink"
+            >
+              <option value="cm">cm</option>
+              <option value="in">in</option>
+            </select>
+          </div>
+        </div>
+
+        <div id="cat-target-fbmi-group" class="hidden">
+          <label for="cat-target-fbmi" class="block text-xs font-medium text-ink">
+            Target Healthy FBMI (%)
+          </label>
+          <input
+            id="cat-target-fbmi"
+            type="number"
+            min="10"
+            max="55"
+            step="0.5"
+            value="22.5"
+            class="pcs-input mt-1.5"
+          />
+        </div>
+
+        <div>
+          <label for="cat-leg" class="block text-xs font-medium text-ink">
+            2. Lower Back Leg (knee to hock)
+          </label>
+          <div class="mt-1.5 flex">
+            <input
+              id="cat-leg"
+              type="number"
+              min="4"
+              max="35"
+              step="0.5"
+              value="14"
+              class="pcs-input rounded-r-none border-r-0"
+            />
+            <select
+              id="cat-leg-unit"
+              aria-label="Leg length unit"
+              class="rounded-r-md border border-hairline-strong bg-canvas-2 px-2.5 font-mono text-xs font-medium text-ink"
+            >
+              <option value="cm">cm</option>
+              <option value="in">in</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="sm:col-span-2">
+          <label for="cat-weight" class="block text-xs font-medium text-ink">
+            Current Weight <span class="text-mute">(optional — for profile &amp; vet printout)</span>
+          </label>
+          <div class="mt-1.5 flex">
+            <input
+              id="cat-weight"
+              type="number"
+              min="0.5"
+              max="20"
+              step="0.1"
+              value="4.6"
+              class="pcs-input rounded-r-none border-r-0"
+            />
+            <select
+              id="cat-weight-unit"
+              aria-label="Cat weight unit"
+              class="rounded-r-md border border-hairline-strong bg-canvas-2 px-2.5 font-mono text-xs font-medium text-ink"
+            >
+              <option value="kg">kg</option>
+              <option value="lb">lb</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Column: Instant FBMI Result + Status Badge -->
+    <div class="pcs-result-panel rounded-xl bg-surface-dark p-6 text-white lg:sticky lg:top-22 lg:col-span-6">
+      <div class="flex items-center justify-between border-b border-zinc-800 pb-4">
+        <p class="font-mono text-xs uppercase tracking-wider text-zinc-400">
+          Feline Body Mass Index
+        </p>
+        <span
+          id="cat-res-badge"
+          class="rounded-md bg-emerald-900/60 px-2.5 py-1 font-mono text-xs font-semibold text-emerald-300"
+        >
+          Normal / Healthy
+        </span>
+      </div>
+
+      <div class="mt-5 flex flex-wrap items-baseline justify-between gap-4">
+        <div>
+          <p class="text-xs text-zinc-400" id="cat-primary-label">Estimated Body Fat (FBMI)</p>
+          <p id="cat-res-fbmi" class="mt-1 font-mono text-4xl font-semibold tabular-nums">
+            26.4%
+          </p>
+        </div>
+        <div class="text-right">
+          <p class="text-xs text-zinc-400">Equivalent Feline BCS</p>
+          <p id="cat-res-bcs" class="mt-1 font-mono text-2xl font-semibold text-zinc-100 tabular-nums">
+            5 / 9
+          </p>
+        </div>
+      </div>
+
+      <!-- Visual FBMI Scale Range -->
+      <div class="mt-5">
+        <div class="relative h-3 w-full overflow-hidden rounded-full bg-zinc-800">
+          <div class="flex h-full w-full">
+            <div class="w-[25%] bg-amber-500/80" title="Underweight <15%"></div>
+            <div class="w-[25%] bg-emerald-500/80" title="Normal 15-29.9%"></div>
+            <div class="w-[25%] bg-orange-500/80" title="Overweight 30-41.9%"></div>
+            <div class="w-[25%] bg-red-500/80" title="Obese ≥42%"></div>
+          </div>
+          <div
+            id="cat-meter-pin"
+            class="absolute top-0 h-full w-1 bg-white transition-all"
+            style="left: 44%"
+          ></div>
+        </div>
+        <div class="mt-1.5 flex justify-between font-mono text-[10px] text-zinc-400">
+          <span>&lt;15% Under</span>
+          <span>15–29.9% Normal</span>
+          <span>30–41.9% Over</span>
+          <span>&ge;42% Obese</span>
+        </div>
+      </div>
+
+      <p id="cat-res-guidance" class="mt-5 text-sm leading-relaxed text-zinc-300"></p>
+
+      <div class="mt-6 grid grid-cols-2 gap-3 border-t border-zinc-800 pt-5">
+        <div class="rounded-lg border border-zinc-800 bg-zinc-900/80 p-3.5">
+          <p class="font-mono text-[11px] uppercase tracking-wider text-zinc-400">
+            Target Healthy Rib Size
+          </p>
+          <p id="cat-res-target-rib" class="mt-1 font-mono text-lg font-semibold text-white tabular-nums">
+            33.8 cm
+          </p>
+          <p class="mt-0.5 text-[11px] text-zinc-400">For 22.5% midpoint FBMI</p>
+        </div>
+
+        <div class="rounded-lg border border-zinc-800 bg-zinc-900/80 p-3.5">
+          <p class="font-mono text-[11px] uppercase tracking-wider text-zinc-400">
+            Safe Weekly Loss Limit
+          </p>
+          <p class="mt-1 font-mono text-lg font-semibold text-white">0.5% – 1%</p>
+          <p class="mt-0.5 text-[11px] text-zinc-400">Prevents hepatic lipidosis</p>
+        </div>
+      </div>
+
+      <div class="mt-5 border-t border-zinc-800 pt-4">
+        <p class="font-mono text-[11px] uppercase tracking-wider text-zinc-400">
+          Live Morphometric Formula
+        </p>
+        <p id="cat-res-formula" class="mt-1.5 font-mono text-xs text-zinc-300 tabular-nums"></p>
+        <p class="mt-2 text-[11px] text-zinc-400">
+          Cited: Hawthorne &amp; Butterwick (Waltham Centre for Pet Nutrition); WSAVA Feline BCS.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <div slot="editorial" class="space-y-8">
+    <section>
+      <h2>How the Cat BMI (FBMI) Formula Works</h2>
+      <p class="mt-3 text-sm leading-relaxed text-body">
+        Unlike dogs, domestic cats share remarkably consistent bone geometry across most breeds.
+        Researchers at the Waltham Centre for Pet Nutrition developed the{' '}
+        <strong>Feline Body Mass Index (FBMI)</strong> equation to estimate body fat percentage
+        objectively from two linear measurements:
+      </p>
+      <div class="mt-4 rounded-lg border border-hairline bg-canvas-2 p-4 font-mono text-xs text-ink">
+        FBMI = [((Rib Cage cm &divide; 0.7062) &minus; Leg cm) &divide; 0.9156] &minus; Leg cm
+      </div>
+    </section>
+
+    <section>
+      <h2>FBMI Reference Ranges</h2>
+      <div class="mt-4 overflow-x-auto rounded-lg border border-hairline bg-surface">
+        <table>
+          <thead>
+            <tr>
+              <th>FBMI Score</th>
+              <th>Classification</th>
+              <th>Approx. WSAVA BCS</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="font-mono">&lt; 15%</td>
+              <td>Underweight</td>
+              <td class="font-mono">1–3 / 9</td>
+            </tr>
+            <tr>
+              <td class="font-mono font-semibold text-brand">15% – 29.9%</td>
+              <td class="font-semibold text-brand">Normal / Healthy</td>
+              <td class="font-mono">4–5 / 9</td>
+            </tr>
+            <tr>
+              <td class="font-mono">30% – 41.9%</td>
+              <td>Overweight</td>
+              <td class="font-mono">6–7 / 9</td>
+            </tr>
+            <tr>
+              <td class="font-mono">&ge; 42%</td>
+              <td>Obese</td>
+              <td class="font-mono">8–9 / 9</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    import { calcCatFbmi } from '../../data/formulas';
+    import {
+      buildShareUrl,
+      cmToIn,
+      getActivePetId,
+      getSavedPets,
+      getUnitSystem,
+      inToCm,
+      kgToLb,
+      lbToKg,
+      savePetProfile,
+    } from '../../scripts/petProfile';
+
+    const ribEl = document.getElementById('cat-rib') as HTMLInputElement;
+    const ribUnitEl = document.getElementById('cat-rib-unit') as HTMLSelectElement;
+    const legEl = document.getElementById('cat-leg') as HTMLInputElement;
+    const legUnitEl = document.getElementById('cat-leg-unit') as HTMLSelectElement;
+    const weightEl = document.getElementById('cat-weight') as HTMLInputElement;
+    const weightUnitEl = document.getElementById('cat-weight-unit') as HTMLSelectElement;
+    const targetFbmiEl = document.getElementById('cat-target-fbmi') as HTMLInputElement;
+    const ribGroup = document.getElementById('cat-rib-group')!;
+    const targetGroup = document.getElementById('cat-target-fbmi-group')!;
+    const modeBtns = document.querySelectorAll<HTMLButtonElement>('[data-cat-mode]');
+
+    let mode: 'forward' | 'reverse' = 'forward';
+
+    function getRibCm(): number {
+      const v = parseFloat(ribEl.value) || 0;
+      return ribUnitEl.value === 'in' ? inToCm(v) : v;
+    }
+
+    function getLegCm(): number {
+      const v = parseFloat(legEl.value) || 0;
+      return legUnitEl.value === 'in' ? inToCm(v) : v;
+    }
+
+    function fmtLen(cm: number, unit: string): string {
+      return unit === 'in' ? `${cmToIn(cm)} in` : `${cm.toFixed(1)} cm`;
+    }
+
+    function render() {
+      const legCm = getLegCm();
+      let ribCm = getRibCm();
+
+      if (mode === 'reverse') {
+        const target = Math.max(5, parseFloat(targetFbmiEl.value) || 22.5);
+        ribCm = Math.round(((target + legCm) * 0.9156 + legCm) * 0.7062 * 10) / 10;
+      }
+
+      const res = calcCatFbmi(ribCm, legCm);
+
+      if (mode === 'reverse') {
+        document.getElementById('cat-primary-label')!.textContent = 'Target Rib Cage Circumference';
+        document.getElementById('cat-res-fbmi')!.textContent = fmtLen(ribCm, ribUnitEl.value);
+      } else {
+        document.getElementById('cat-primary-label')!.textContent = 'Estimated Body Fat (FBMI)';
+        document.getElementById('cat-res-fbmi')!.textContent = `${res.fbmi.toFixed(1)}%`;
+      }
+
+      document.getElementById('cat-res-bcs')!.textContent = `${res.estimatedBcs} / 9`;
+      document.getElementById('cat-res-guidance')!.textContent = res.guidance;
+      document.getElementById('cat-res-target-rib')!.textContent = fmtLen(
+        res.targetRibCageCm,
+        ribUnitEl.value,
+      );
+
+      const badge = document.getElementById('cat-res-badge')!;
+      badge.textContent = res.category;
+      badge.className = 'rounded-md px-2.5 py-1 font-mono text-xs font-semibold ';
+      if (res.category === 'Normal / Healthy') {
+        badge.className += 'bg-emerald-900/60 text-emerald-300';
+      } else if (res.category === 'Underweight') {
+        badge.className += 'bg-amber-900/60 text-amber-300';
+      } else if (res.category === 'Overweight') {
+        badge.className += 'bg-orange-900/60 text-orange-300';
+      } else {
+        badge.className += 'bg-red-900/60 text-red-300';
+      }
+
+      // Position meter pin across 4 equal 25% segments (<15, 15-30, 30-42, 42-60)
+      let pct = 50;
+      if (res.fbmi < 15) pct = Math.max(2, (res.fbmi / 15) * 25);
+      else if (res.fbmi < 30) pct = 25 + ((res.fbmi - 15) / 15) * 25;
+      else if (res.fbmi < 42) pct = 50 + ((res.fbmi - 30) / 12) * 25;
+      else pct = Math.min(98, 75 + ((res.fbmi - 42) / 18) * 25);
+      (document.getElementById('cat-meter-pin') as HTMLElement).style.left = `${pct}%`;
+
+      document.getElementById('cat-res-formula')!.textContent =
+        `[((${ribCm.toFixed(1)} ÷ 0.7062) − ${legCm.toFixed(1)}) ÷ 0.9156] − ${legCm.toFixed(1)} = ${res.fbmi.toFixed(1)}%`;
+    }
+
+    modeBtns.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        mode = btn.dataset.catMode as 'forward' | 'reverse';
+        modeBtns.forEach((b) => {
+          const active = b === btn;
+          b.classList.toggle('bg-surface', active);
+          b.classList.toggle('text-ink', active);
+          b.classList.toggle('text-mute', !active);
+        });
+        ribGroup.classList.toggle('hidden', mode === 'reverse');
+        targetGroup.classList.toggle('hidden', mode === 'forward');
+        render();
+      });
+    });
+
+    function attachLenSync(input: HTMLInputElement, unitSel: HTMLSelectElement) {
+      let prev = unitSel.value;
+      unitSel.addEventListener('change', () => {
+        const v = parseFloat(input.value) || 0;
+        if (prev === 'cm' && unitSel.value === 'in') input.value = String(cmToIn(v));
+        if (prev === 'in' && unitSel.value === 'cm') input.value = String(inToCm(v));
+        prev = unitSel.value;
+        render();
+      });
+    }
+
+    attachLenSync(ribEl, ribUnitEl);
+    attachLenSync(legEl, legUnitEl);
+
+    let prevWt = weightUnitEl.value;
+    weightUnitEl.addEventListener('change', () => {
+      const v = parseFloat(weightEl.value) || 0;
+      if (prevWt === 'kg' && weightUnitEl.value === 'lb') weightEl.value = String(kgToLb(v));
+      if (prevWt === 'lb' && weightUnitEl.value === 'kg') weightEl.value = String(lbToKg(v).toFixed(1));
+      prevWt = weightUnitEl.value;
+    });
+
+    function syncGlobal(unit: string) {
+      const targetLen = unit === 'imperial' ? 'in' : 'cm';
+      const targetWt = unit === 'imperial' ? 'lb' : 'kg';
+      [
+        [ribUnitEl, targetLen],
+        [legUnitEl, targetLen],
+        [weightUnitEl, targetWt],
+      ].forEach(([sel, t]) => {
+        const s = sel as HTMLSelectElement;
+        if (s.value !== t) {
+          s.value = t as string;
+          s.dispatchEvent(new Event('change'));
+        }
+      });
+    }
+
+    window.addEventListener('pcs:unit-change', (e: any) =>
+      syncGlobal(e.detail?.unit || getUnitSystem()),
+    );
+    syncGlobal(getUnitSystem());
+
+    [ribEl, legEl, targetFbmiEl].forEach((el) => {
+      el.addEventListener('input', render);
+      el.addEventListener('change', render);
+    });
+
+    window.addEventListener('pcs:request-save-pet', () => {
+      const name = window.prompt('Name for this cat profile (saved locally on your device):', 'My Cat');
+      if (name === null) return;
+      const wt = parseFloat(weightEl.value) || 4.5;
+      const weightKg = weightUnitEl.value === 'lb' ? lbToKg(wt) : wt;
+      const res = calcCatFbmi(getRibCm(), getLegCm());
+      savePetProfile({
+        name,
+        species: 'cat',
+        weightKg: Math.round(weightKg * 10) / 10,
+        neutered: true,
+        bcs: res.estimatedBcs,
+      });
+    });
+
+    window.addEventListener('pcs:copy-share-link', () => {
+      const url = buildShareUrl({
+        rib: ribEl.value,
+        ru: ribUnitEl.value,
+        leg: legEl.value,
+        lu: legUnitEl.value,
+      });
+      window.history.replaceState({}, '', url);
+    });
+
+    window.addEventListener('pcs:reset-calculator', () => {
+      ribUnitEl.value = 'cm';
+      legUnitEl.value = 'cm';
+      ribEl.value = '36';
+      legEl.value = '14';
+      targetFbmiEl.value = '22.5';
+      window.history.replaceState({}, '', window.location.pathname);
+      render();
+    });
+
+    const p = new URLSearchParams(window.location.search);
+    if (p.has('rib')) ribEl.value = p.get('rib')!;
+    if (p.has('leg')) legEl.value = p.get('leg')!;
+
+    render();
+  </script>
+</CalculatorShell>

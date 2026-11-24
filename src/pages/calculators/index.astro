@@ -1,0 +1,118 @@
+---
+import Base from '../../layouts/Base.astro';
+import { CATEGORY_LABELS, liveTools, type ToolCategory } from '../../data/tools';
+
+const title = 'All Pet & Gestation Calculators';
+const description =
+  'Browse all clinically-informed calculators on Pet Condition Score: dog BCS & BMI, cat FBMI, pregnancy timelines, gestational week, calories, and growth curves.';
+
+const tools = liveTools();
+const categories = Object.keys(CATEGORY_LABELS) as ToolCategory[];
+---
+
+<Base title={title} description={description} path="/calculators/">
+  <section class="shell pt-10 pb-16 md:pt-14">
+    <div class="border-b border-hairline pb-7">
+      <p class="font-mono text-xs uppercase tracking-widest text-brand">Calculator Directory</p>
+      <h1 class="mt-3">All Pet &amp; Health Calculators</h1>
+      <p class="mt-3 max-w-2xl text-base text-body">
+        Filter by clinical category or species, or search by keyword. Every tool runs instantaneously
+        in your browser with named veterinary references.
+      </p>
+
+      <div class="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div class="flex flex-wrap gap-2" role="tablist" aria-label="Filter calculators by category">
+          <button
+            type="button"
+            data-cat-filter="all"
+            class="rounded-md border border-ink bg-ink px-3 py-1.5 text-xs font-medium text-white cursor-pointer"
+          >
+            All ({tools.length})
+          </button>
+          {categories.map((cat) => (
+            <button
+              type="button"
+              data-cat-filter={cat}
+              class="rounded-md border border-hairline bg-surface px-3 py-1.5 text-xs font-medium text-body hover:border-ink hover:text-ink cursor-pointer"
+            >
+              {CATEGORY_LABELS[cat]}
+            </button>
+          ))}
+        </div>
+
+        <input
+          id="dir-search"
+          type="search"
+          placeholder="Filter by keyword or animal..."
+          class="pcs-input sm:max-w-xs"
+          aria-label="Filter calculators"
+        />
+      </div>
+    </div>
+
+    <ul id="dir-grid" class="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+      {tools.map((tool) => (
+        <li
+          data-category={tool.category}
+          data-text={`${tool.title} ${tool.keyword} ${tool.blurb} ${tool.species.join(' ')}`.toLowerCase()}
+        >
+          <a
+            href={`/calculators/${tool.slug}/`}
+            class="flex h-full flex-col justify-between rounded-lg border border-hairline bg-surface p-5 no-underline transition hover:border-brand"
+          >
+            <div>
+              <div class="flex items-center justify-between gap-2">
+                <span class="rounded bg-canvas-2 px-2 py-0.5 font-mono text-[11px] text-ink">
+                  {CATEGORY_LABELS[tool.category]}
+                </span>
+                <span class="font-mono text-[11px] uppercase text-mute">
+                  {tool.species.join(' / ')}
+                </span>
+              </div>
+              <h2 class="mt-3 text-xl font-medium text-ink">{tool.title}</h2>
+              <p class="mt-2 text-sm leading-relaxed text-body">{tool.blurb}</p>
+            </div>
+            <div class="mt-5 flex items-center justify-between border-t border-hairline pt-3">
+              <span class="font-mono text-[11px] text-mute">{tool.sourceLabel}</span>
+              <span class="font-mono text-xs font-medium text-brand">Calculate &rarr;</span>
+            </div>
+          </a>
+        </li>
+      ))}
+    </ul>
+  </section>
+
+  <script>
+    const buttons = document.querySelectorAll<HTMLButtonElement>('[data-cat-filter]');
+    const search = document.getElementById('dir-search') as HTMLInputElement | null;
+    const cards = document.querySelectorAll<HTMLLIElement>('#dir-grid li');
+    let activeCategory = 'all';
+
+    function applyFilter() {
+      const q = (search?.value || '').trim().toLowerCase();
+      cards.forEach((card) => {
+        const catOk = activeCategory === 'all' || card.dataset.category === activeCategory;
+        const textOk = !q || (card.dataset.text || '').includes(q);
+        card.style.display = catOk && textOk ? '' : 'none';
+      });
+    }
+
+    buttons.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        activeCategory = btn.dataset.catFilter || 'all';
+        buttons.forEach((b) => {
+          const active = b === btn;
+          b.classList.toggle('bg-ink', active);
+          b.classList.toggle('border-ink', active);
+          b.classList.toggle('text-white', active);
+          b.classList.toggle('bg-surface', !active);
+          b.classList.toggle('border-hairline', !active);
+          b.classList.toggle('text-body', !active);
+        });
+        applyFilter();
+      });
+    });
+
+    search?.addEventListener('input', applyFilter);
+  </script>
+</Base>

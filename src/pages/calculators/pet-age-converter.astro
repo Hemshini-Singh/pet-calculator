@@ -1,0 +1,147 @@
+---
+import CalculatorShell, { type FaqItem } from '../../components/CalculatorShell.astro';
+import { getTool } from '../../data/tools';
+
+const tool = getTool('pet-age-converter')!;
+
+const faqs: FaqItem[] = [
+  {
+    question: 'Is 1 dog year really equal to 7 human years?',
+    answer:
+      'No. Dogs and cats mature much faster in their first two years (year 1 ≈ 15 human years, year 2 ≈ 24 human years). After age two, smaller dogs age about 4 human years per year while giant breeds age roughly 7 human years per year.',
+  },
+  {
+    question: 'Can I convert human years back into dog or cat years?',
+    answer:
+      'Yes — switch the mode toggle to "Human → Pet Years" to see how old 30, 50, or 100 human years are in dog or cat years.',
+  },
+];
+---
+
+<CalculatorShell tool={tool} faqs={faqs} showPetProfileBar={false}>
+  <div slot="calculator" class="grid gap-6 lg:grid-cols-12 lg:items-start">
+    <div class="space-y-5 rounded-xl border border-hairline bg-surface p-6 lg:col-span-5">
+      <div class="inline-flex w-full rounded-md border border-hairline bg-canvas-2 p-0.5 text-xs">
+        <button type="button" data-pa-dir="to-human" class="flex-1 rounded bg-surface px-3 py-2 font-medium text-ink cursor-pointer">
+          Pet &rarr; Human Years
+        </button>
+        <button type="button" data-pa-dir="to-pet" class="flex-1 rounded px-3 py-2 font-medium text-mute cursor-pointer">
+          Human &rarr; Pet Years
+        </button>
+      </div>
+
+      <div>
+        <label for="pa-species" class="block text-xs font-medium text-ink">Species</label>
+        <select id="pa-species" class="pcs-input mt-1.5">
+          <option value="dog" selected>Dog</option>
+          <option value="cat">Cat</option>
+        </select>
+      </div>
+
+      <div id="pa-size-group">
+        <label for="pa-size" class="block text-xs font-medium text-ink">Dog Size Class</label>
+        <select id="pa-size" class="pcs-input mt-1.5">
+          <option value="small">Toy / Small (&le; 10 kg)</option>
+          <option value="medium" selected>Medium (10–25 kg)</option>
+          <option value="large">Large (25–45 kg)</option>
+          <option value="giant">Giant (&gt; 45 kg)</option>
+        </select>
+      </div>
+
+      <div>
+        <label for="pa-age" id="pa-age-label" class="block text-xs font-medium text-ink">
+          Pet Age (years)
+        </label>
+        <input id="pa-age" type="number" min="0.5" max="120" step="0.5" value="5" class="pcs-input mt-1.5" />
+      </div>
+    </div>
+
+    <div class="pcs-result-panel rounded-xl bg-surface-dark p-6 text-white lg:col-span-7">
+      <div class="flex items-center justify-between border-b border-zinc-800 pb-4">
+        <p class="font-mono text-xs uppercase tracking-wider text-zinc-400">Age Equivalent</p>
+        <span id="pa-stage" class="rounded bg-emerald-900/60 px-2.5 py-1 font-mono text-xs font-semibold text-emerald-300">
+          Adult
+        </span>
+      </div>
+
+      <div class="mt-5">
+        <p id="pa-res-label" class="text-xs text-zinc-400">Equivalent Human Age</p>
+        <p id="pa-res-val" class="mt-1 font-mono text-4xl font-semibold tabular-nums">39 human years</p>
+      </div>
+
+      <p id="pa-res-note" class="mt-4 text-sm text-zinc-300"></p>
+    </div>
+  </div>
+
+  <div slot="editorial">
+    <section>
+      <h2>Veterinary Life-Stage Aging Model</h2>
+      <p class="mt-3 text-sm leading-relaxed text-body">
+        Using the AAHA/AAFP feline and size-stratified canine life-stage models avoids the
+        inaccurate "multiply by 7" myth and reflects faster early maturation in the first 24 months
+        of life.
+      </p>
+    </section>
+  </div>
+
+  <script>
+    import { catAgeToHuman, dogAgeToHuman, humanToCatYears, humanToDogYears } from '../../data/formulas';
+    import type { SizeClass } from '../../data/growthCurves';
+
+    let dir: 'to-human' | 'to-pet' = 'to-human';
+    const dirBtns = document.querySelectorAll<HTMLButtonElement>('[data-pa-dir]');
+    const speciesEl = document.getElementById('pa-species') as HTMLSelectElement;
+    const sizeEl = document.getElementById('pa-size') as HTMLSelectElement;
+    const sizeGroup = document.getElementById('pa-size-group')!;
+    const ageEl = document.getElementById('pa-age') as HTMLInputElement;
+
+    function render() {
+      const sp = speciesEl.value as 'dog' | 'cat';
+      const sz = sizeEl.value as SizeClass;
+      const val = Math.max(0.1, parseFloat(ageEl.value) || 5);
+      sizeGroup.classList.toggle('hidden', sp === 'cat');
+
+      if (dir === 'to-human') {
+        const human = sp === 'dog' ? dogAgeToHuman(val, sz) : catAgeToHuman(val);
+        document.getElementById('pa-res-label')!.textContent = 'Equivalent Human Age';
+        document.getElementById('pa-res-val')!.textContent = `${human} human years`;
+        document.getElementById('pa-stage')!.textContent =
+          val < 1 ? 'Puppy / Kitten' : val < 3 ? 'Young Adult' : val < 7 ? 'Mature Adult' : 'Senior';
+        document.getElementById('pa-res-note')!.textContent =
+          sp === 'dog'
+            ? `Year 1 = 15, Year 2 = 24, then +${sz === 'small' ? 4 : sz === 'medium' ? 5 : sz === 'large' ? 6 : 7} human years per dog year.`
+            : 'Year 1 = 15, Year 2 = 24, then +4 human years per cat year.';
+      } else {
+        const pet = sp === 'dog' ? humanToDogYears(val, sz) : humanToCatYears(val);
+        document.getElementById('pa-res-label')!.textContent = `Equivalent ${sp === 'dog' ? 'Dog' : 'Cat'} Age`;
+        document.getElementById('pa-res-val')!.textContent = `${pet} ${sp} years`;
+        document.getElementById('pa-stage')!.textContent = 'Reverse Conversion';
+        document.getElementById('pa-res-note')!.textContent =
+          `${val} human years equals approximately ${pet} years for a ${sp === 'dog' ? `${sz} breed dog` : 'cat'}.`;
+      }
+    }
+
+    dirBtns.forEach((b) =>
+      b.addEventListener('click', () => {
+        dir = b.dataset.paDir as 'to-human' | 'to-pet';
+        dirBtns.forEach((x) => {
+          const active = x === b;
+          x.classList.toggle('bg-surface', active);
+          x.classList.toggle('text-ink', active);
+          x.classList.toggle('text-mute', !active);
+        });
+        document.getElementById('pa-age-label')!.textContent =
+          dir === 'to-human' ? 'Pet Age (years)' : 'Human Age (years)';
+        if (dir === 'to-pet' && parseFloat(ageEl.value) < 15) ageEl.value = '40';
+        if (dir === 'to-human' && parseFloat(ageEl.value) > 25) ageEl.value = '5';
+        render();
+      }),
+    );
+
+    [speciesEl, sizeEl, ageEl].forEach((el) => {
+      el.addEventListener('input', render);
+      el.addEventListener('change', render);
+    });
+    render();
+  </script>
+</CalculatorShell>

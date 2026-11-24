@@ -1,0 +1,292 @@
+---
+import Base from '../layouts/Base.astro';
+import { CATEGORY_LABELS, liveTools, type Tool } from '../data/tools';
+
+export interface FaqItem {
+  question: string;
+  answer: string;
+}
+
+interface Props {
+  tool: Tool;
+  faqs?: FaqItem[];
+  howToSteps?: Array<{ name: string; text: string }>;
+  showPetProfileBar?: boolean;
+}
+
+const { tool, faqs = [], howToSteps = [], showPetProfileBar = true } = Astro.props;
+
+const SITE = Astro.site?.toString().replace(/\/$/, '') ?? 'https://petconditionscore.com';
+const path = `/calculators/${tool.slug}/`;
+
+const related = liveTools()
+  .filter((t) => t.slug !== tool.slug)
+  .sort((a, b) => {
+    const aSameCat = a.category === tool.category ? -1 : 0;
+    const bSameCat = b.category === tool.category ? -1 : 0;
+    return aSameCat - bSameCat;
+  })
+  .slice(0, 3);
+
+const extraSchema: Array<Record<string, unknown>> = [];
+
+if (faqs.length > 0) {
+  extraSchema.push({
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: faqs.map((f) => ({
+      '@type': 'Question',
+      name: f.question,
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: f.answer,
+      },
+    })),
+  });
+}
+
+if (howToSteps.length > 0) {
+  extraSchema.push({
+    '@context': 'https://schema.org',
+    '@type': 'HowTo',
+    name: `How to use the ${tool.title}`,
+    description: tool.description,
+    step: howToSteps.map((s, idx) => ({
+      '@type': 'HowToStep',
+      position: idx + 1,
+      name: s.name,
+      text: s.text,
+    })),
+  });
+}
+---
+
+<Base
+  title={tool.title}
+  description={tool.description}
+  path={path}
+  ogType="article"
+  schema={extraSchema}
+>
+  <article class="shell pt-8 pb-16 md:pt-12">
+    <!-- Breadcrumbs -->
+    <nav aria-label="Breadcrumb" class="no-print flex flex-wrap items-center gap-2 text-xs text-mute">
+      <a href="/" class="text-mute no-underline hover:text-ink">Home</a>
+      <span aria-hidden="true">/</span>
+      <a href="/calculators/" class="text-mute no-underline hover:text-ink">Calculators</a>
+      <span aria-hidden="true">/</span>
+      <span class="text-body">{CATEGORY_LABELS[tool.category]}</span>
+    </nav>
+
+    <!-- Editorial Header -->
+    <header class="mt-5 border-b border-hairline pb-7">
+      <div class="flex flex-wrap items-center gap-2.5">
+        <span class="rounded bg-brand-soft px-2.5 py-1 font-mono text-[11px] font-medium uppercase tracking-wider text-brand">
+          {CATEGORY_LABELS[tool.category]}
+        </span>
+        <span class="rounded border border-hairline bg-canvas-2 px-2.5 py-1 font-mono text-[11px] text-body">
+          Source: {tool.sourceLabel}
+        </span>
+        <span class="font-mono text-[11px] text-mute">Updated Nov 2026</span>
+      </div>
+
+      <h1 class="mt-4 max-w-3xl text-balance">{tool.title}</h1>
+      <p class="mt-3 max-w-2xl text-base leading-relaxed text-body md:text-lg">
+        {tool.description}
+      </p>
+
+      <!-- Action Toolbar + Local Pet Profile Bar -->
+      <div class="no-print mt-6 flex flex-wrap items-center justify-between gap-3">
+        {
+          showPetProfileBar ? (
+            <div
+              id="pcs-profile-bar"
+              class="flex flex-wrap items-center gap-2 rounded-lg border border-hairline bg-surface px-3 py-2 text-xs"
+            >
+              <span class="font-mono uppercase tracking-wider text-mute">Saved pet:</span>
+              <select
+                id="pcs-saved-pet-select"
+                aria-label="Load a saved pet profile"
+                class="rounded border border-hairline bg-canvas px-2 py-1 text-xs text-ink"
+              >
+                <option value="">No saved profile selected</option>
+              </select>
+              <button
+                type="button"
+                id="pcs-save-pet-btn"
+                class="rounded border border-hairline-strong bg-canvas-2 px-2.5 py-1 font-medium text-ink transition hover:bg-surface-hover cursor-pointer"
+              >
+                Save current pet
+              </button>
+            </div>
+          ) : (
+            <div />
+          )
+        }
+
+        <div class="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            id="pcs-share-btn"
+            class="rounded-md border border-hairline-strong bg-surface px-3 py-1.5 text-xs font-medium text-ink transition hover:bg-canvas-2 cursor-pointer"
+          >
+            Copy share link
+          </button>
+          <button
+            type="button"
+            id="pcs-print-btn"
+            class="rounded-md border border-hairline-strong bg-surface px-3 py-1.5 text-xs font-medium text-ink transition hover:bg-canvas-2 cursor-pointer"
+          >
+            Print Vet Summary
+          </button>
+          <button
+            type="button"
+            id="pcs-reset-btn"
+            class="rounded-md border border-hairline bg-canvas-2 px-3 py-1.5 text-xs font-medium text-body transition hover:text-ink cursor-pointer"
+          >
+            Reset
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Interactive Calculator Workspace -->
+    <section class="mt-8" aria-label="Calculator workspace">
+      <slot name="calculator" />
+    </section>
+
+    <!-- Visual Charts / Timelines Slot (Full Width) -->
+    <section class="mt-10">
+      <slot name="visual" />
+    </section>
+
+    <!-- Editorial Reading Measure (680px per DESIGN.md §4) -->
+    <div class="mt-14 grid gap-12 lg:grid-cols-12">
+      <div class="reading-measure space-y-10 lg:col-span-8">
+        <slot name="editorial" />
+
+        {
+          faqs.length > 0 && (
+            <section id="faq" class="border-t border-hairline pt-8">
+              <h2 class="text-2xl">Frequently Asked Questions</h2>
+              <div class="mt-5 divide-y divide-hairline border-y border-hairline">
+                {faqs.map((item) => (
+                  <details class="group py-4">
+                    <summary class="flex cursor-pointer list-none items-center justify-between gap-4 font-medium text-ink">
+                      <span>{item.question}</span>
+                      <span class="font-mono text-sm text-mute transition group-open:rotate-45">
+                        +
+                      </span>
+                    </summary>
+                    <p class="mt-3 text-sm leading-relaxed text-body">{item.answer}</p>
+                  </details>
+                ))}
+              </div>
+            </section>
+          )
+        }
+      </div>
+
+      <!-- Editorial Sidebar: Citations & Related Tools -->
+      <aside class="no-print space-y-6 lg:col-span-4">
+        <div class="rounded-lg border border-hairline bg-canvas-2 p-5">
+          <p class="font-mono text-xs uppercase tracking-wider text-mute">Clinical Reference</p>
+          <p class="mt-2 text-sm font-medium text-ink">{tool.sourceLabel}</p>
+          <p class="mt-2 text-xs leading-relaxed text-body">
+            All formulas calculate live in your browser with transparent variables and units. No
+            personal pet data leaves your device.
+          </p>
+          <a href="/methodology/" class="mt-3 inline-block text-xs font-medium">
+            Read full methodology &rarr;
+          </a>
+        </div>
+
+        <div class="rounded-lg border border-hairline bg-surface p-5">
+          <p class="font-mono text-xs uppercase tracking-wider text-mute">Related Calculators</p>
+          <ul class="mt-3 divide-y divide-hairline">
+            {related.map((rel) => (
+              <li class="py-3 first:pt-0 last:pb-0">
+                <a
+                  href={`/calculators/${rel.slug}/`}
+                  class="block no-underline transition hover:opacity-80"
+                >
+                  <p class="text-sm font-semibold text-ink">{rel.shortTitle}</p>
+                  <p class="mt-0.5 text-xs leading-relaxed text-body">{rel.blurb}</p>
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </aside>
+    </div>
+  </article>
+
+  <script>
+    import {
+      getActivePetId,
+      getSavedPets,
+      setActivePetId,
+    } from '../scripts/petProfile';
+
+    function populatePetSelect() {
+      const sel = document.getElementById('pcs-saved-pet-select') as HTMLSelectElement | null;
+      if (!sel) return;
+      const pets = getSavedPets();
+      const activeId = getActivePetId();
+      sel.innerHTML = '';
+
+      const emptyOpt = document.createElement('option');
+      emptyOpt.value = '';
+      emptyOpt.textContent =
+        pets.length === 0 ? 'No saved pets yet' : 'Select a saved pet profile...';
+      sel.appendChild(emptyOpt);
+
+      for (const pet of pets) {
+        const opt = document.createElement('option');
+        opt.value = pet.id;
+        opt.textContent = `${pet.name} (${pet.species}, ${pet.weightKg} kg${pet.bcs ? `, BCS ${pet.bcs}/9` : ''})`;
+        if (pet.id === activeId) opt.selected = true;
+        sel.appendChild(opt);
+      }
+    }
+
+    populatePetSelect();
+
+    document.getElementById('pcs-saved-pet-select')?.addEventListener('change', (e) => {
+      const val = (e.target as HTMLSelectElement).value || null;
+      setActivePetId(val);
+    });
+
+    window.addEventListener('pcs:pet-change', populatePetSelect);
+
+    document.getElementById('pcs-save-pet-btn')?.addEventListener('click', () => {
+      window.dispatchEvent(new CustomEvent('pcs:request-save-pet'));
+    });
+
+    document.getElementById('pcs-share-btn')?.addEventListener('click', async (e) => {
+      const btn = e.currentTarget as HTMLButtonElement;
+      const orig = btn.textContent;
+      window.dispatchEvent(new CustomEvent('pcs:copy-share-link'));
+      try {
+        await navigator.clipboard.writeText(window.location.href);
+        btn.textContent = 'Link copied ✓';
+        setTimeout(() => {
+          btn.textContent = orig;
+        }, 2000);
+      } catch {
+        btn.textContent = 'URL updated in bar';
+        setTimeout(() => {
+          btn.textContent = orig;
+        }, 2000);
+      }
+    });
+
+    document.getElementById('pcs-print-btn')?.addEventListener('click', () => {
+      window.print();
+    });
+
+    document.getElementById('pcs-reset-btn')?.addEventListener('click', () => {
+      window.dispatchEvent(new CustomEvent('pcs:reset-calculator'));
+    });
+  </script>
+</Base>

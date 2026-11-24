@@ -1,136 +1,151 @@
 /**
- * Tool registry — the single source of truth for which calculators exist,
- * what they target, and whether they are live.
+ * Tool registry — single source of truth for all calculators on petconditionscore.com.
  *
- * The home page, the header nav, the footer and the sitemap all read from
- * here. Adding a tool means adding one entry plus one page under
- * `src/pages/tools/`.
- *
- * `live: false` tools are planned but not yet published — they are hidden from
- * the site and from navigation. We never ship a card that links to a 404.
- *
- * Priority order follows PROJECT.md §4: Tier 1 first (tools that require user
- * input and cannot be answered by an AI Overview), age converters last
- * (DECISIONS.md D3, D6).
+ * `live: true` tools appear in navigation, homepage, /calculators/, and sitemap.
  */
 
 export type Tier = 1 | 2 | 3;
+export type ToolCategory = 'condition' | 'pregnancy' | 'nutrition' | 'growth-age';
 
 export interface Tool {
   slug: string;
   title: string;
+  shortTitle: string;
+  category: ToolCategory;
+  species: Array<'dog' | 'cat' | 'human'>;
   /** Meta description, 140–160 characters. */
   description: string;
   /** Primary target keyword. */
   keyword: string;
   tier: Tier;
   live: boolean;
-  /** Short line shown on the home page card. */
+  /** Short line shown on cards. */
   blurb: string;
+  /** Primary scientific reference. */
+  sourceLabel: string;
 }
 
 export const TOOLS: Tool[] = [
   {
-    slug: 'puppy-growth-calculator',
-    title: 'Puppy Growth & Adult Weight Calculator',
+    slug: 'dog-bcs',
+    title: 'Dog Body Condition Score & BMI Calculator',
+    shortTitle: 'Dog BCS & BMI',
+    category: 'condition',
+    species: ['dog'],
     description:
-      'Predict your puppy’s adult weight and height using WSAVA growth curves by breed size class. Enter breed, age and current weight for a sourced estimate.',
-    keyword: 'puppy growth calculator',
+      'Calculate your dog’s Body Condition Score (1–9 WSAVA scale), ideal weight range, body fat estimate, and safe daily calories by breed.',
+    keyword: 'dog body condition score calculator',
     tier: 1,
-    live: false,
-    blurb: 'Predict adult weight and size from breed, age and current weight.',
+    live: true,
+    blurb: 'Guided 1–9 WSAVA condition assessment, ideal weight target, and breed-aware calorie plan.',
+    sourceLabel: 'WSAVA & Laflamme (1997)',
   },
   {
-    slug: 'puppy-weight-calculator',
-    title: 'Puppy Weight & Growth Chart by Breed',
+    slug: 'cat-bmi',
+    title: 'Cat BMI (FBMI) & Condition Score Calculator',
+    shortTitle: 'Cat BMI & BCS',
+    category: 'condition',
+    species: ['cat'],
     description:
-      'See your puppy’s projected weight at every month of growth. Uses WSAVA size-class growth curves for a breed-accurate month-by-month weight chart.',
-    keyword: 'puppy weight calculator',
+      'Compute your cat’s Feline Body Mass Index (FBMI) from 9th-rib and hind-leg measurements with an anatomical diagram and instant weight classification.',
+    keyword: 'cat bmi calculator',
     tier: 1,
-    live: false,
-    blurb: 'A month-by-month projected weight chart for your puppy.',
+    live: true,
+    blurb: 'Feline Body Mass Index from rib & leg measurements with visual guide and instant status.',
+    sourceLabel: 'Hawthorne & Butterwick / WSAVA',
   },
   {
-    slug: 'dog-food-calculator',
-    title: 'Dog Food & Daily Calorie Calculator',
+    slug: 'dog-pregnancy',
+    title: 'Dog Pregnancy & Whelping Timeline Calculator',
+    shortTitle: 'Dog Pregnancy',
+    category: 'pregnancy',
+    species: ['dog'],
     description:
-      'Work out exactly how much food to feed your dog each day. Uses your dog’s body condition score, neuter status and activity, then converts calories to cups or grams.',
+      'Estimate your dog’s due date (58–68 day window) from mating date—or solve backward from due date—with a full week-by-week whelping timeline.',
+    keyword: 'dog pregnancy calculator',
+    tier: 1,
+    live: true,
+    blurb: '63-day due date, 58–68 day safe window, ultrasound & X-ray dates, and nutrition milestones.',
+    sourceLabel: 'Canine Gestation Consensus (63d)',
+  },
+  {
+    slug: 'cat-pregnancy',
+    title: 'Cat Pregnancy & Queening Timeline Calculator',
+    shortTitle: 'Cat Pregnancy',
+    category: 'pregnancy',
+    species: ['cat'],
+    description:
+      'Calculate your cat’s expected delivery date (58–71 day range) and week-by-week feline pregnancy milestones from mating date or due date.',
+    keyword: 'cat pregnancy calculator',
+    tier: 1,
+    live: true,
+    blurb: '64-day due date, 58–71 day delivery range, pinking-up milestone, and queening checklist.',
+    sourceLabel: 'Feline Gestation Consensus (63–65d)',
+  },
+  {
+    slug: 'gestational-week',
+    title: 'Gestational Week Calculator (LMP & Due Date)',
+    shortTitle: 'Gestational Week',
+    category: 'pregnancy',
+    species: ['human'],
+    description:
+      'Free gestational week calculator. Enter your Last Menstrual Period (LMP) or due date to calculate exact gestational age in weeks and days.',
+    keyword: 'gestational week calculator',
+    tier: 1,
+    live: true,
+    blurb: 'Calculate exact gestational age in weeks and days by LMP or EDD with trimester milestones.',
+    sourceLabel: "Naegele's Rule / ACOG",
+  },
+  {
+    slug: 'pet-calorie-calculator',
+    title: 'Dog & Cat Daily Calorie & Food Portion Calculator',
+    shortTitle: 'Pet Calorie & Food',
+    category: 'nutrition',
+    species: ['dog', 'cat'],
+    description:
+      'Work out daily calories (RER/DER) and exact dry cups, grams, or wet cans for dogs and cats using NRC (2006) formulas adjusted for body condition.',
     keyword: 'dog food calculator',
     tier: 1,
-    live: false,
-    blurb: 'Exact daily portions from body condition score and activity level.',
+    live: true,
+    blurb: 'NRC 2006 calorie targets converted directly to kcal/cup, grams, wet cans, and meal splits.',
+    sourceLabel: 'NRC (2006)',
   },
   {
-    slug: 'cat-food-calculator',
-    title: 'Cat Food & Daily Calorie Calculator',
+    slug: 'puppy-growth-calculator',
+    title: 'Puppy Growth & Adult Weight Predictor',
+    shortTitle: 'Puppy Growth',
+    category: 'growth-age',
+    species: ['dog'],
     description:
-      'Calculate how much food your cat needs each day in calories, grams and cans. Uses body condition score and life stage with feline-specific energy formulas.',
-    keyword: 'cat food calculator',
+      'Predict your puppy’s adult weight and month-by-month growth trajectory using WSAVA size-class curves for toy, small, medium, large, and giant breeds.',
+    keyword: 'puppy growth calculator',
     tier: 2,
-    live: false,
-    blurb: 'Feline-specific daily portions in kcal, grams and cans.',
+    live: true,
+    blurb: 'Predict adult weight and month-by-month growth from breed size class, age, and weight.',
+    sourceLabel: 'WSAVA (Flohr et al., 2018)',
   },
   {
-    slug: 'dog-pregnancy-calculator',
-    title: 'Dog Pregnancy & Whelping Timeline',
+    slug: 'pet-age-converter',
+    title: 'Dog & Cat Age Calculator (Human Years Converter)',
+    shortTitle: 'Pet Age Converter',
+    category: 'growth-age',
+    species: ['dog', 'cat'],
     description:
-      'Estimate your dog’s due date from the mating date and get a week-by-week pregnancy timeline with whelping signs and vet visit reminders.',
-    keyword: 'dog pregnancy calculator',
-    tier: 2,
-    live: false,
-    blurb: 'Due date plus a week-by-week whelping calendar.',
-  },
-  {
-    slug: 'raw-feeding-calculator',
-    title: 'Raw Feeding & BARF Ratio Calculator',
-    description:
-      'Build a raw feeding plan for your dog using 80/10/10 or 70/10/20 ratios. Converts daily calories into organ meat, bone, muscle meat and vegetable amounts.',
-    keyword: 'raw feeding calculator',
-    tier: 2,
-    live: false,
-    blurb: 'Raw ratios and daily quantities from your dog’s calorie needs.',
-  },
-  {
-    slug: 'human-years-to-cat-years',
-    title: 'Human Years to Cat Years Converter',
-    description:
-      'Convert human years to cat years using the standard feline aging formula. Works in both directions for any cat age from newborn to 20 years old.',
-    keyword: 'how old is 100 years in cat years',
-    tier: 3,
-    live: false,
-    blurb: 'The reverse conversion — human years into cat years.',
-  },
-  {
-    slug: 'human-years-to-dog-years',
-    title: 'Human Years to Dog Years Converter',
-    description:
-      'Convert human years to dog years by breed size class, from small breeds through giant breeds. Uses the size-based canine aging formula with a full reference chart.',
-    keyword: 'how old is 30 years in dog years',
-    tier: 3,
-    live: false,
-    blurb: 'The reverse conversion — human years into dog years.',
-  },
-  {
-    slug: 'dog-age-calculator',
-    title: 'Dog Age in Human Years',
-    description:
-      'Convert your dog’s age to human years by breed size class, and see what life stage your dog is in and what care that stage needs.',
+      'Convert dog or cat years to human years—or reverse-convert human years to pet years—adjusted by canine breed size class and feline life stages.',
     keyword: 'dog age calculator',
-    tier: 3,
-    live: false,
-    blurb: 'Size-based conversion plus life-stage guidance.',
-  },
-  {
-    slug: 'cat-age-calculator',
-    title: 'Cat Age in Human Years',
-    description:
-      'Convert your cat’s age to human years with the standard feline life-stage formula, and see the full cat-to-human years chart from one year to twenty.',
-    keyword: 'cat age calculator',
-    tier: 3,
-    live: false,
-    blurb: 'The standard feline conversion plus a full 1–20 chart.',
+    tier: 2,
+    live: true,
+    blurb: 'Two-way dog and cat age converter adjusted for breed size class and life stage.',
+    sourceLabel: 'AAHA / AVMA Life-Stage Model',
   },
 ];
+
+export const CATEGORY_LABELS: Record<ToolCategory, string> = {
+  condition: 'Body Condition & BMI',
+  pregnancy: 'Pregnancy & Gestation',
+  nutrition: 'Calories & Feeding',
+  'growth-age': 'Growth & Age',
+};
 
 export function liveTools(): Tool[] {
   return TOOLS.filter((t) => t.live);
@@ -138,4 +153,8 @@ export function liveTools(): Tool[] {
 
 export function getTool(slug: string): Tool | undefined {
   return TOOLS.find((t) => t.slug === slug);
+}
+
+export function getToolsByCategory(category: ToolCategory): Tool[] {
+  return liveTools().filter((t) => t.category === category);
 }

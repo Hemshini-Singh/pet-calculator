@@ -353,9 +353,381 @@ export function describeBcs(score: number): BcsResult {
     isIdeal: s === 5,
     adjustmentNote:
       s < 5
-        ? 'This dog is below the ideal body condition score. Feed the calculated amount plus roughly 10% until the score reaches 5/9.'
+        ? 'This pet is below the ideal body condition score. Feed the calculated amount plus roughly 10% until the score reaches 5/9.'
         : s > 5
-          ? 'This dog is above the ideal body condition score. Feed about 10% less than the calculated amount and reassess in 4 weeks.'
-          : 'This dog is at the ideal body condition score. Feed the calculated amount.',
+          ? 'This pet is above the ideal body condition score. Feed about 10% less than the calculated amount and reassess in 4 weeks.'
+          : 'This pet is at the ideal body condition score. Feed the calculated amount.',
+  };
+}
+
+// ─── Dog & Cat Body Condition / BMI Assessment ──────────────────────────────
+
+export const DOG_BCS_METHOD_SOURCE =
+  'WSAVA Global Nutrition Guidelines (9-Point Body Condition Score) & Laflamme (1997) ~10% body weight variance per BCS unit';
+
+export interface DogBcsAssessment {
+  bcs: number;
+  category: 'Underweight' | 'Ideal' | 'Overweight' | 'Obese';
+  label: string;
+  description: string;
+  estimatedBodyFatPct: number;
+  idealWeightKg: number;
+  weightDeltaKg: number;
+  safeWeeklyLossKg: number;
+  maintenanceKcal: number;
+  targetKcal: number;
+  bmi?: number;
+  source: string;
+}
+
+/**
+ * Computes a breed- and WSAVA-BCS-aware condition assessment for dogs.
+ * Each BCS point away from 5/9 corresponds to roughly 10% weight variance
+ * from ideal (Laflamme, 1997; WSAVA Global Nutrition Committee).
+ */
+export function assessDogCondition(opts: {
+  weightKg: number;
+  bcs: number;
+  shoulderHeightCm?: number;
+  neutered?: boolean;
+  activity?: ActivityLevel;
+  breed?: Breed;
+}): DogBcsAssessment {
+  const bcs = Math.min(9, Math.max(1, Math.round(opts.bcs)));
+  const info = describeBcs(bcs);
+  const weightKg = Math.max(0.5, opts.weightKg);
+
+  // Estimate ideal weight using Laflamme (~10% per BCS unit from 5/9)
+  const factor = bcs >= 5 ? 1 + (bcs - 5) * 0.1 : Math.max(0.55, 1 - (5 - bcs) * 0.1);
+  const idealWeightKg = Math.round((weightKg / factor) * 10) / 10;
+  const weightDeltaKg = Math.round((weightKg - idealWeightKg) * 10) / 10;
+
+  // Approximate body fat % on the 9-point canine BCS scale (Laflamme 1997: BCS 5 ≈ 15-20%, +~5% per unit)
+  const estimatedBodyFatPct = Math.min(50, Math.max(5, Math.round(17.5 + (bcs - 5) * 5)));
+
+  const category: DogBcsAssessment['category'] =
+    bcs <= 3 ? 'Underweight' : bcs <= 5 ? 'Ideal' : bcs <= 7 ? 'Overweight' : 'Obese';
+
+  // Safe canine weight loss rate: 1–2% of current body weight per week (AAHA Weight Management Guidelines)
+  const safeWeeklyLossKg = bcs > 5 ? Math.round(weightKg * 0.015 * 100) / 100 : 0;
+
+  // Calorie target calculated on IDEAL weight for safe weight loss, or current weight if ideal
+  const calcWeight = bcs > 5 ? idealWeightKg : weightKg;
+  const maintenanceKcal = Math.round(
+    mer(weightKg, {
+      lifeStage: 'adult',
+      neutered: opts.neutered ?? true,
+      activity: opts.activity ?? 'moderate',
+      breed: opts.breed,
+    }),
+  );
+
+  let targetKcal = Math.round(
+    rer(calcWeight) * (bcs > 5 ? 1.0 : opts.neutered === false ? 1.8 : 1.6),
+  );
+  if (bcs < 5) {
+    targetKcal = Math.round(maintenanceKcal * 1.15);
+  } else if (bcs === 5) {
+    targetKcal = maintenanceKcal;
+  }
+
+  let bmi: number | undefined;
+  if (opts.shoulderHeightCm && opts.shoulderHeightCm > 5) {
+    const hMeters = opts.shoulderHeightCm / 100;
+    bmi = Math.round((weightKg / (hMeters * hMeters)) * 10) / 10;
+  }
+
+  return {
+    bcs,
+    category,
+    label: info.label,
+    description: info.description,
+    estimatedBodyFatPct,
+    idealWeightKg,
+    weightDeltaKg,
+    safeWeeklyLossKg,
+    maintenanceKcal,
+    targetKcal,
+    bmi,
+    source: DOG_BCS_METHOD_SOURCE,
+  };
+}
+
+// ─── Cat FBMI (Feline Body Mass Index) ──────────────────────────────────────
+
+export const CAT_FBMI_SOURCE =
+  'Feline Body Mass Index (FBMI) equation from Hawthorne & Butterwick (Waltham Centre for Pet Nutrition) & WSAVA Feline BCS';
+
+export interface CatFbmiResult {
+  fbmi: number;
+  estimatedBcs: number;
+  category: 'Underweight' | 'Normal / Healthy' | 'Overweight' | 'Obese';
+  guidance: string;
+  targetRibCageCm: number;
+  source: string;
+}
+
+/**
+ * Calculates Feline Body Mass Index (FBMI) from 9th-rib circumference (cm)
+ * and lower hind-limb length from patella to calcaneus (cm).
+ * Formula: FBMI = (((ribCageCm / 0.7062) - legLengthCm) / 0.9156) - legLengthCm
+ */
+export function calcCatFbmi(ribCageCm: number, legLengthCm: number): CatFbmiResult {
+  const safeRib = Math.max(10, ribCageCm);
+  const safeLeg = Math.max(4, legLengthCm);
+  const raw = ((safeRib / 0.7062 - safeLeg) / 0.9156) - safeLeg;
+  const fbmi = Math.round(raw * 10) / 10;
+
+  let category: CatFbmiResult['category'];
+  let estimatedBcs: number;
+  let guidance: string;
+
+  if (fbmi < 15) {
+    category = 'Underweight';
+    estimatedBcs = fbmi < 10 ? 2 : 3;
+    guidance =
+      'Estimated body fat is below healthy feline reserves. Rule out hyperthyroidism, dental pain, or GI issues with your veterinarian and increase caloric intake gradually.';
+  } else if (fbmi < 30) {
+    category = 'Normal / Healthy';
+    estimatedBcs = fbmi < 20 ? 4 : 5;
+    guidance =
+      'Healthy feline body fat range (15–29.9%). Maintain current measured feeding portions and regular interactive play.';
+  } else if (fbmi < 42) {
+    category = 'Overweight';
+    estimatedBcs = fbmi < 36 ? 6 : 7;
+    guidance =
+      'Above ideal feline body fat (30–41.9%). Aim for gradual weight loss of 0.5–1% of body weight per week; avoid crash diets due to hepatic lipidosis risk.';
+  } else {
+    category = 'Obese';
+    estimatedBcs = fbmi < 48 ? 8 : 9;
+    guidance =
+      'Significantly elevated body fat (≥42%), increasing risk of feline diabetes, arthritis, and urinary issues. Partner with your veterinarian on a safe calorie-restricted plan.';
+  }
+
+  // Healthy midpoint FBMI = 22.5 -> solve backwards for ideal rib cage circumference
+  const targetRibCageCm = Math.round(((22.5 + safeLeg) * 0.9156 + safeLeg) * 0.7062 * 10) / 10;
+
+  return {
+    fbmi,
+    estimatedBcs,
+    category,
+    guidance,
+    targetRibCageCm,
+    source: CAT_FBMI_SOURCE,
+  };
+}
+
+// ─── Detailed Animal Pregnancy & Gestation ──────────────────────────────────
+
+export interface DetailedPregnancyResult {
+  species: 'dog' | 'cat';
+  matingDate: Date;
+  dueDate: Date;
+  earliestDate: Date;
+  latestDate: Date;
+  gestationDays: number;
+  minDays: number;
+  maxDays: number;
+  daysElapsed: number;
+  daysRemaining: number;
+  currentWeek: number;
+  trimester: 1 | 2 | 3;
+  progressPct: number;
+  milestones: Array<{
+    week: string;
+    day: number;
+    date: Date;
+    title: string;
+    detail: string;
+    status: 'passed' | 'current' | 'upcoming';
+  }>;
+  source: string;
+}
+
+export function calcDetailedPregnancy(
+  inputDate: Date,
+  mode: 'mating' | 'due',
+  species: 'dog' | 'cat',
+  today: Date = new Date(),
+): DetailedPregnancyResult {
+  const gestationDays = species === 'dog' ? 63 : 64;
+  const minDays = 58;
+  const maxDays = species === 'dog' ? 68 : 71;
+
+  const base = new Date(inputDate.getFullYear(), inputDate.getMonth(), inputDate.getDate());
+  const matingDate = new Date(base);
+  const dueDate = new Date(base);
+
+  if (mode === 'mating') {
+    dueDate.setDate(matingDate.getDate() + gestationDays);
+  } else {
+    matingDate.setDate(dueDate.getDate() - gestationDays);
+  }
+
+  const earliestDate = new Date(matingDate);
+  earliestDate.setDate(matingDate.getDate() + minDays);
+
+  const latestDate = new Date(matingDate);
+  latestDate.setDate(matingDate.getDate() + maxDays);
+
+  const cleanToday = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+  const msPerDay = 86_400_000;
+  const rawElapsed = Math.round((cleanToday.getTime() - matingDate.getTime()) / msPerDay);
+  const daysElapsed = Math.max(0, Math.min(maxDays, rawElapsed));
+  const daysRemaining = Math.max(0, Math.round((dueDate.getTime() - cleanToday.getTime()) / msPerDay));
+  const currentWeek = Math.min(10, Math.max(1, Math.floor(daysElapsed / 7) + 1));
+  const trimester: 1 | 2 | 3 = daysElapsed <= 21 ? 1 : daysElapsed <= 42 ? 2 : 3;
+  const progressPct = Math.min(100, Math.max(0, Math.round((daysElapsed / gestationDays) * 100)));
+
+  const rawMilestones: Array<[string, number, string, string]> =
+    species === 'dog'
+      ? [
+          ['Week 1–2', 7, 'Fertilization & cell division', 'Normal activity and regular adult maintenance diet; avoid unnecessary medications.'],
+          ['Week 3', 21, 'Embryo implantation', 'Mild morning sickness or reduced appetite can occur. Gentle abdominal palpation window begins (~day 21–28).'],
+          ['Week 4–5', 30, 'Ultrasound confirmation', 'Veterinary ultrasound confirms pregnancy and detects fetal heartbeats. Switch gradually to growth/puppy food if carrying a large litter.'],
+          ['Week 6', 42, 'Rapid fetal growth & ossification', 'Increase daily calories by 20–25% split into smaller frequent meals. X-rays from day 45+ reliably count skeletons.'],
+          ['Week 7–8', 52, 'Whelping box preparation', 'Mammary development increases; increase calories up to 35–50% above maintenance. Set up a quiet, draft-free whelping box.'],
+          ['Week 9', 58, 'Safe delivery window opens', 'Rectal temperature drops below 37.2°C (99°F) 12–24 hours before active labor. Safe delivery window spans days 58–68.'],
+          ['Due Date', 63, 'Expected whelping day (Day 63)', 'Average canine gestation from ovulation/LH surge is 63 days (±5 days). Contact your vet if no labor occurs by day 68 or contractions last >30 min without a pup.'],
+        ]
+      : [
+          ['Week 1–2', 10, 'Fertilization & uterine migration', 'Keep routine calm and maintain normal balanced adult feline nutrition.'],
+          ['Week 3', 18, '"Pinking up" & implantation', 'Nipples turn noticeably pink and slightly enlarged around days 15–18. Implantation completes near day 21.'],
+          ['Week 4', 28, 'Ultrasound & palpation window', 'Veterinary ultrasound confirms kittens and heartbeats. Begin gradual transition toward energy-dense kitten food.'],
+          ['Week 6', 42, 'Rapid third-trimester growth', 'Increase daily intake by 25–50% via multiple small meals as abdominal space tightens. X-rays after day 45 show kitten count.'],
+          ['Week 8', 54, 'Nesting & queening box setup', 'Queen seeks quiet, dark nesting spots. Provide a lined, accessible queening box away from household traffic.'],
+          ['Week 8–9', 58, 'Early viable window (Day 58)', 'Safe feline delivery ranges 58–71 days (mean 63–65). Watch for reduced appetite and nesting behavior 24 hours prior.'],
+          ['Due Date', 64, 'Expected queening day (Day 64)', 'Most kittens arrive between days 63 and 65. Seek veterinary care if active straining produces no kitten within 30–45 minutes or gestation passes day 71.'],
+        ];
+
+  const milestones = rawMilestones.map(([week, day, title, detail]) => {
+    const date = new Date(matingDate);
+    date.setDate(matingDate.getDate() + day);
+    const status: 'passed' | 'current' | 'upcoming' =
+      rawElapsed >= day + 4 ? 'passed' : rawElapsed >= day - 3 ? 'current' : 'upcoming';
+    return { week, day, date, title, detail, status };
+  });
+
+  return {
+    species,
+    matingDate,
+    dueDate,
+    earliestDate,
+    latestDate,
+    gestationDays,
+    minDays,
+    maxDays,
+    daysElapsed,
+    daysRemaining,
+    currentWeek,
+    trimester,
+    progressPct,
+    milestones,
+    source: GESTATION_SOURCE,
+  };
+}
+
+// ─── Human Gestational Week Calculator (Naegele's Rule) ─────────────────────
+
+export const HUMAN_GESTATION_SOURCE =
+  "Naegele's Rule (280 days / 40 weeks from Last Menstrual Period) & ACOG Committee Opinion No. 700";
+
+export interface GestationalWeekResult {
+  lmpDate: Date;
+  eddDate: Date;
+  conceptionDate: Date;
+  gestationalDays: number;
+  weeks: number;
+  daysRemainder: number;
+  trimester: 1 | 2 | 3;
+  daysRemaining: number;
+  progressPct: number;
+  fetalSizeComparison: string;
+  source: string;
+}
+
+const FETAL_SIZE_BY_WEEK: Record<number, string> = {
+  4: 'Poppy seed (~2 mm)',
+  5: 'Sesame seed (~3 mm)',
+  6: 'Lentil (~6 mm)',
+  7: 'Blueberry (~1.3 cm)',
+  8: 'Raspberry (~1.6 cm)',
+  9: 'Cherry (~2.3 cm)',
+  10: 'Strawberry (~3.1 cm)',
+  11: 'Lime (~4.1 cm)',
+  12: 'Plum (~5.4 cm)',
+  13: 'Lemon (~7.4 cm)',
+  14: 'Nectarine (~8.7 cm)',
+  15: 'Apple (~10 cm)',
+  16: 'Avocado (~11.6 cm)',
+  17: 'Pear (~13 cm)',
+  18: 'Bell pepper (~14.2 cm)',
+  19: 'Mango (~15.3 cm)',
+  20: 'Banana (~25.6 cm head-to-heel)',
+  22: 'Papaya (~27.8 cm)',
+  24: 'Ear of corn (~30 cm)',
+  26: 'Scallion / lettuce (~35.6 cm)',
+  28: 'Eggplant (~37.6 cm)',
+  30: 'Cabbage (~39.9 cm)',
+  32: 'Squash (~42.4 cm)',
+  34: 'Cantaloupe (~45 cm)',
+  36: 'Romaine lettuce (~47.4 cm)',
+  38: 'Winter melon (~49.8 cm)',
+  40: 'Small pumpkin (~51.2 cm)',
+};
+
+export function calcGestationalWeek(
+  inputDate: Date,
+  mode: 'lmp' | 'edd',
+  cycleLengthDays: number = 28,
+  today: Date = new Date(),
+): GestationalWeekResult {
+  const cycleAdjust = Math.max(-7, Math.min(14, Math.round(cycleLengthDays - 28)));
+  const totalDays = 280 + cycleAdjust;
+
+  const base = new Date(inputDate.getFullYear(), inputDate.getMonth(), inputDate.getDate());
+  const lmpDate = new Date(base);
+  const eddDate = new Date(base);
+
+  if (mode === 'lmp') {
+    eddDate.setDate(lmpDate.getDate() + totalDays);
+  } else {
+    lmpDate.setDate(eddDate.getDate() - totalDays);
+  }
+
+  const conceptionDate = new Date(lmpDate);
+  conceptionDate.setDate(lmpDate.getDate() + 14 + cycleAdjust);
+
+  const cleanToday = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+  const msPerDay = 86_400_000;
+  const rawDays = Math.round((cleanToday.getTime() - lmpDate.getTime()) / msPerDay);
+  const gestationalDays = Math.max(0, Math.min(294, rawDays));
+  const weeks = Math.floor(gestationalDays / 7);
+  const daysRemainder = gestationalDays % 7;
+  const trimester: 1 | 2 | 3 = weeks < 14 ? 1 : weeks < 28 ? 2 : 3;
+  const daysRemaining = Math.max(0, Math.round((eddDate.getTime() - cleanToday.getTime()) / msPerDay));
+  const progressPct = Math.min(100, Math.max(0, Math.round((gestationalDays / 280) * 100)));
+
+  const milestoneWeeks = Object.keys(FETAL_SIZE_BY_WEEK)
+    .map(Number)
+    .sort((a, b) => a - b);
+  let matchedWeek = 4;
+  for (const w of milestoneWeeks) {
+    if (weeks >= w) matchedWeek = w;
+  }
+
+  return {
+    lmpDate,
+    eddDate,
+    conceptionDate,
+    gestationalDays,
+    weeks,
+    daysRemainder,
+    trimester,
+    daysRemaining,
+    progressPct,
+    fetalSizeComparison:
+      weeks < 4 ? 'Pre-implantation / early conception window' : FETAL_SIZE_BY_WEEK[matchedWeek],
+    source: HUMAN_GESTATION_SOURCE,
   };
 }

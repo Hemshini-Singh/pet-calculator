@@ -1,0 +1,279 @@
+---
+import CalculatorShell, { type FaqItem } from '../../components/CalculatorShell.astro';
+import { getTool } from '../../data/tools';
+
+const tool = getTool('dog-pregnancy')!;
+
+const faqs: FaqItem[] = [
+  {
+    question: 'How long is a dog pregnant?',
+    answer:
+      'Canine gestation averages 63 days (about 9 weeks) from ovulation. However, because breeding dates can precede or follow ovulation by several days, a healthy normal delivery window ranges from 58 to 68 days after mating.',
+  },
+  {
+    question: 'When can a vet confirm a dog is pregnant?',
+    answer:
+      'An experienced veterinarian can often feel embryonic vesicles via gentle abdominal palpation around days 21–28, confirm heartbeats by ultrasound from day 28–30 onward, and count fetal skeletons accurately on X-ray after day 45.',
+  },
+  {
+    question: 'When should I switch my pregnant dog to puppy food?',
+    answer:
+      'During the first 4–5 weeks, a normal balanced adult diet is sufficient. In the final third of pregnancy (from roughly day 42 onward), gradually increase calorie intake by 25%–50% across smaller, more frequent meals, often transitioning to nutrient-dense puppy/growth kibble.',
+  },
+];
+
+const howToSteps = [
+  {
+    name: 'Choose Mating Date or Reverse Due Date mode',
+    text: 'Enter the breeding date to forecast the whelping window, or enter a due date to estimate when mating occurred.',
+  },
+  {
+    name: 'Review the 58–68 day safe delivery window',
+    text: 'Plan monitoring and veterinary checks around both the Day 63 average and the full 58–68 day range.',
+  },
+  {
+    name: 'Follow the week-by-week timeline',
+    text: 'Track ultrasound dates, X-ray puppy count windows, calorie increases, and whelping box prep.',
+  },
+];
+---
+
+<CalculatorShell tool={tool} faqs={faqs} howToSteps={howToSteps} showPetProfileBar={false}>
+  <div slot="calculator" class="grid gap-6 lg:grid-cols-12 lg:items-start">
+    <!-- Left Inputs -->
+    <div class="space-y-5 rounded-xl border border-hairline bg-surface p-6 lg:col-span-5">
+      <div>
+        <h2 class="text-xl font-medium">Breeding or Due Date</h2>
+        <p class="mt-1 text-xs text-mute">
+          Solve forward from mating date or backward from an expected due date.
+        </p>
+      </div>
+
+      <div class="inline-flex w-full rounded-md border border-hairline bg-canvas-2 p-0.5 text-xs">
+        <button
+          type="button"
+          data-dp-mode="mating"
+          class="flex-1 rounded bg-surface px-3 py-2 font-medium text-ink cursor-pointer"
+        >
+          From Mating Date
+        </button>
+        <button
+          type="button"
+          data-dp-mode="due"
+          class="flex-1 rounded px-3 py-2 font-medium text-mute cursor-pointer"
+        >
+          From Due Date
+        </button>
+      </div>
+
+      <div>
+        <label for="dp-date" id="dp-date-label" class="block text-xs font-medium text-ink">
+          First Mating / Breeding Date
+        </label>
+        <input id="dp-date" type="date" class="pcs-input mt-1.5" />
+      </div>
+
+      <div class="rounded-lg border border-hairline bg-canvas p-4 text-xs leading-relaxed text-body">
+        <p class="font-mono text-[11px] uppercase tracking-wider text-brand">Clinical Note</p>
+        <p class="mt-1.5">
+          Canine sperm can survive 5–7 days in the reproductive tract, so counting solely from a
+          single mating date carries a &plusmn;5-day variance. Always watch for the pre-labor rectal
+          temperature drop below <strong>37.2&deg;C (99&deg;F)</strong>.
+        </p>
+      </div>
+    </div>
+
+    <!-- Right Result Panel -->
+    <div class="pcs-result-panel rounded-xl bg-surface-dark p-6 text-white lg:col-span-7">
+      <div class="flex items-center justify-between border-b border-zinc-800 pb-4">
+        <p class="font-mono text-xs uppercase tracking-wider text-zinc-400">
+          Canine Gestation Forecast
+        </p>
+        <span id="dp-trimester" class="rounded bg-emerald-900/60 px-2.5 py-1 font-mono text-xs font-semibold text-emerald-300">
+          Trimester 1 · Week 1
+        </span>
+      </div>
+
+      <div class="mt-5 grid gap-4 sm:grid-cols-2">
+        <div>
+          <p id="dp-primary-label" class="text-xs text-zinc-400">Expected Due Date (Day 63)</p>
+          <p id="dp-primary-date" class="mt-1 font-display text-3xl font-medium text-white">
+            —
+          </p>
+        </div>
+        <div class="sm:text-right">
+          <p class="text-xs text-zinc-400">Countdown / Day</p>
+          <p id="dp-countdown" class="mt-1 font-mono text-2xl font-semibold text-emerald-300 tabular-nums">
+            —
+          </p>
+        </div>
+      </div>
+
+      <!-- Progress Bar -->
+      <div class="mt-5">
+        <div class="flex justify-between font-mono text-xs text-zinc-400">
+          <span id="dp-progress-text">Day 0 of 63</span>
+          <span id="dp-progress-pct">0%</span>
+        </div>
+        <div class="mt-2 h-2.5 w-full overflow-hidden rounded-full bg-zinc-800">
+          <div id="dp-progress-bar" class="h-full rounded-full bg-emerald-500 transition-all" style="width: 0%"></div>
+        </div>
+      </div>
+
+      <div class="mt-6 grid grid-cols-2 gap-3 border-t border-zinc-800 pt-5">
+        <div class="rounded-lg border border-zinc-800 bg-zinc-900/80 p-3.5">
+          <p class="font-mono text-[11px] uppercase tracking-wider text-zinc-400">
+            Earliest Safe Date (Day 58)
+          </p>
+          <p id="dp-earliest" class="mt-1 font-mono text-base font-semibold text-white">—</p>
+        </div>
+        <div class="rounded-lg border border-zinc-800 bg-zinc-900/80 p-3.5">
+          <p class="font-mono text-[11px] uppercase tracking-wider text-zinc-400">
+            Latest Safe Date (Day 68)
+          </p>
+          <p id="dp-latest" class="mt-1 font-mono text-base font-semibold text-white">—</p>
+        </div>
+      </div>
+
+      <p class="mt-4 text-[11px] text-zinc-400">
+        Cited: Canine gestation averages 63 days from ovulation (58–68 day normal range).
+      </p>
+    </div>
+  </div>
+
+  <!-- Full-Width Interactive Week-by-Week Timeline -->
+  <section slot="visual" class="rounded-xl border border-hairline bg-surface p-6">
+    <div class="flex flex-wrap items-center justify-between gap-2 border-b border-hairline pb-4">
+      <div>
+        <h2 class="text-xl font-medium">Week-by-Week Whelping &amp; Vet Care Timeline</h2>
+        <p class="mt-1 text-xs text-mute">
+          Calculated dynamically from your entered breeding date.
+        </p>
+      </div>
+      <span class="font-mono text-xs text-brand">63-Day Milestones</span>
+    </div>
+
+    <ol id="dp-timeline" class="mt-6 space-y-4"></ol>
+  </section>
+
+  <div slot="editorial" class="space-y-8">
+    <section>
+      <h2>Understanding Canine Pregnancy Stages</h2>
+      <p class="mt-3 text-sm leading-relaxed text-body">
+        Dog pregnancy is short—averaging <strong>63 days (9 weeks)</strong>—so fetal development
+        accelerates dramatically in the final three weeks. Tracking milestones by week ensures you
+        schedule diagnostic ultrasound (~day 30) and X-ray litter counts (~day 45+) at the right
+        clinical window while adjusting calories safely.
+      </p>
+    </section>
+  </div>
+
+  <script>
+    import { calcDetailedPregnancy } from '../../data/formulas';
+    import { buildShareUrl } from '../../scripts/petProfile';
+
+    const dateEl = document.getElementById('dp-date') as HTMLInputElement;
+    const modeBtns = document.querySelectorAll<HTMLButtonElement>('[data-dp-mode]');
+    let mode: 'mating' | 'due' = 'mating';
+
+    function isoLocal(d: Date): string {
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return `${y}-${m}-${day}`;
+    }
+
+    function fmtPretty(d: Date): string {
+      return d.toLocaleDateString('en-US', {
+        weekday: 'short',
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+      });
+    }
+
+    // Default to 24 days ago so user sees an active mid-pregnancy timeline immediately
+    const defaultDate = new Date();
+    defaultDate.setDate(defaultDate.getDate() - 24);
+    dateEl.value = isoLocal(defaultDate);
+
+    function render() {
+      const parts = (dateEl.value || isoLocal(defaultDate)).split('-').map(Number);
+      const parsed = new Date(parts[0], parts[1] - 1, parts[2]);
+      if (isNaN(parsed.getTime())) return;
+
+      const res = calcDetailedPregnancy(parsed, mode, 'dog');
+
+      document.getElementById('dp-primary-label')!.textContent =
+        mode === 'mating' ? 'Expected Due Date (Day 63)' : 'Estimated Mating Date';
+      document.getElementById('dp-primary-date')!.textContent =
+        mode === 'mating' ? fmtPretty(res.dueDate) : fmtPretty(res.matingDate);
+
+      document.getElementById('dp-trimester')!.textContent =
+        `Trimester ${res.trimester} · Week ${res.currentWeek}`;
+      document.getElementById('dp-countdown')!.textContent =
+        res.daysRemaining === 0 ? 'Due Today' : `${res.daysRemaining} days left`;
+      document.getElementById('dp-progress-text')!.textContent =
+        `Day ${res.daysElapsed} of ${res.gestationDays}`;
+      document.getElementById('dp-progress-pct')!.textContent = `${res.progressPct}%`;
+      (document.getElementById('dp-progress-bar') as HTMLElement).style.width =
+        `${res.progressPct}%`;
+      document.getElementById('dp-earliest')!.textContent = fmtPretty(res.earliestDate);
+      document.getElementById('dp-latest')!.textContent = fmtPretty(res.latestDate);
+
+      const list = document.getElementById('dp-timeline')!;
+      list.innerHTML = '';
+      for (const m of res.milestones) {
+        const li = document.createElement('li');
+        li.className =
+          'grid gap-2 rounded-lg border p-4 sm:grid-cols-12 sm:items-center ' +
+          (m.status === 'current'
+            ? 'border-brand bg-brand-soft/60'
+            : m.status === 'passed'
+              ? 'border-hairline bg-canvas-2/60 opacity-80'
+              : 'border-hairline bg-surface');
+        li.innerHTML = `
+          <div class="sm:col-span-3">
+            <span class="font-mono text-xs font-semibold text-brand">${m.week} (Day ${m.day})</span>
+            <p class="mt-0.5 font-mono text-xs text-mute">${fmtPretty(m.date)}</p>
+          </div>
+          <div class="sm:col-span-9">
+            <p class="text-sm font-semibold text-ink">${m.title}</p>
+            <p class="mt-1 text-xs leading-relaxed text-body">${m.detail}</p>
+          </div>
+        `;
+        list.appendChild(li);
+      }
+    }
+
+    modeBtns.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        mode = btn.dataset.dpMode as 'mating' | 'due';
+        modeBtns.forEach((b) => {
+          const active = b === btn;
+          b.classList.toggle('bg-surface', active);
+          b.classList.toggle('text-ink', active);
+          b.classList.toggle('text-mute', !active);
+        });
+        document.getElementById('dp-date-label')!.textContent =
+          mode === 'mating' ? 'First Mating / Breeding Date' : 'Expected Due Date';
+        render();
+      });
+    });
+
+    dateEl.addEventListener('input', render);
+    dateEl.addEventListener('change', render);
+
+    window.addEventListener('pcs:copy-share-link', () => {
+      window.history.replaceState({}, '', buildShareUrl({ mode, d: dateEl.value }));
+    });
+    window.addEventListener('pcs:reset-calculator', () => {
+      dateEl.value = isoLocal(defaultDate);
+      render();
+    });
+
+    const params = new URLSearchParams(window.location.search);
+    if (params.has('d')) dateEl.value = params.get('d')!;
+    render();
+  </script>
+</CalculatorShell>

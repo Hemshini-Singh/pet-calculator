@@ -1,0 +1,232 @@
+---
+import CalculatorShell, { type FaqItem } from '../../components/CalculatorShell.astro';
+import { getTool } from '../../data/tools';
+
+const tool = getTool('cat-pregnancy')!;
+
+const faqs: FaqItem[] = [
+  {
+    question: 'How long is a cat pregnant?',
+    answer:
+      'Cat pregnancy typically lasts 63 to 65 days (around 9 weeks), with a normal healthy delivery window spanning from 58 to 71 days after mating.',
+  },
+  {
+    question: 'What is the earliest physical sign my cat is pregnant?',
+    answer:
+      'Around days 15 to 18 after mating, a cat’s nipples often enlarge and turn noticeably pink or rosy ("pinking up"). Gentle vet palpation or ultrasound can confirm kittens around days 21–28.',
+  },
+  {
+    question: 'When should I prepare a queening box?',
+    answer:
+      'Set up a quiet, draft-free queening box lined with clean towels around week 7–8 (days 50–56) so your cat gets comfortable sleeping inside it before active labor begins.',
+  },
+];
+---
+
+<CalculatorShell tool={tool} faqs={faqs} showPetProfileBar={false}>
+  <div slot="calculator" class="grid gap-6 lg:grid-cols-12 lg:items-start">
+    <div class="space-y-5 rounded-xl border border-hairline bg-surface p-6 lg:col-span-5">
+      <div>
+        <h2 class="text-xl font-medium">Mating or Queening Date</h2>
+        <p class="mt-1 text-xs text-mute">Instant feline gestation estimate &amp; reverse solver.</p>
+      </div>
+
+      <div class="inline-flex w-full rounded-md border border-hairline bg-canvas-2 p-0.5 text-xs">
+        <button
+          type="button"
+          data-cp-mode="mating"
+          class="flex-1 rounded bg-surface px-3 py-2 font-medium text-ink cursor-pointer"
+        >
+          From Mating Date
+        </button>
+        <button
+          type="button"
+          data-cp-mode="due"
+          class="flex-1 rounded px-3 py-2 font-medium text-mute cursor-pointer"
+        >
+          From Due Date
+        </button>
+      </div>
+
+      <div>
+        <label for="cp-date" id="cp-date-label" class="block text-xs font-medium text-ink">
+          Estimated Mating Date
+        </label>
+        <input id="cp-date" type="date" class="pcs-input mt-1.5" />
+      </div>
+
+      <div class="rounded-lg border border-hairline bg-canvas p-4 text-xs leading-relaxed text-body">
+        <p class="font-mono text-[11px] uppercase tracking-wider text-brand">Feline Note</p>
+        <p class="mt-1.5">
+          Cats are induced ovulators and may mate multiple times over several days—which explains
+          why normal queening spans <strong>58 to 71 days</strong>. Never press firmly on a
+          pregnant cat’s abdomen at home.
+        </p>
+      </div>
+    </div>
+
+    <div class="pcs-result-panel rounded-xl bg-surface-dark p-6 text-white lg:col-span-7">
+      <div class="flex items-center justify-between border-b border-zinc-800 pb-4">
+        <p class="font-mono text-xs uppercase tracking-wider text-zinc-400">
+          Feline Gestation Forecast
+        </p>
+        <span id="cp-trimester" class="rounded bg-emerald-900/60 px-2.5 py-1 font-mono text-xs font-semibold text-emerald-300">
+          Trimester 1 · Week 1
+        </span>
+      </div>
+
+      <div class="mt-5 grid gap-4 sm:grid-cols-2">
+        <div>
+          <p id="cp-primary-label" class="text-xs text-zinc-400">Expected Due Date (Day 64)</p>
+          <p id="cp-primary-date" class="mt-1 font-display text-3xl font-medium text-white">—</p>
+        </div>
+        <div class="sm:text-right">
+          <p class="text-xs text-zinc-400">Countdown / Day</p>
+          <p id="cp-countdown" class="mt-1 font-mono text-2xl font-semibold text-emerald-300 tabular-nums">—</p>
+        </div>
+      </div>
+
+      <div class="mt-5">
+        <div class="flex justify-between font-mono text-xs text-zinc-400">
+          <span id="cp-progress-text">Day 0 of 64</span>
+          <span id="cp-progress-pct">0%</span>
+        </div>
+        <div class="mt-2 h-2.5 w-full overflow-hidden rounded-full bg-zinc-800">
+          <div id="cp-progress-bar" class="h-full rounded-full bg-emerald-500 transition-all" style="width: 0%"></div>
+        </div>
+      </div>
+
+      <div class="mt-6 grid grid-cols-2 gap-3 border-t border-zinc-800 pt-5">
+        <div class="rounded-lg border border-zinc-800 bg-zinc-900/80 p-3.5">
+          <p class="font-mono text-[11px] uppercase tracking-wider text-zinc-400">
+            Earliest Window (Day 58)
+          </p>
+          <p id="cp-earliest" class="mt-1 font-mono text-base font-semibold text-white">—</p>
+        </div>
+        <div class="rounded-lg border border-zinc-800 bg-zinc-900/80 p-3.5">
+          <p class="font-mono text-[11px] uppercase tracking-wider text-zinc-400">
+            Latest Window (Day 71)
+          </p>
+          <p id="cp-latest" class="mt-1 font-mono text-base font-semibold text-white">—</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <section slot="visual" class="rounded-xl border border-hairline bg-surface p-6">
+    <h2 class="border-b border-hairline pb-4 text-xl font-medium">
+      Week-by-Week Feline Pregnancy Timeline
+    </h2>
+    <ol id="cp-timeline" class="mt-6 space-y-4"></ol>
+  </section>
+
+  <div slot="editorial">
+    <section>
+      <h2>Feline Nutrition &amp; Queening Checklist</h2>
+      <p class="mt-3 text-sm leading-relaxed text-body">
+        Pregnant queens require gradually higher energy density starting around week 4–6 as kittens
+        gain over 70% of their birth weight in the final trimester. Transition smoothly onto
+        high-protein kitten food through late gestation and nursing.
+      </p>
+    </section>
+  </div>
+
+  <script>
+    import { calcDetailedPregnancy } from '../../data/formulas';
+    import { buildShareUrl } from '../../scripts/petProfile';
+
+    const dateEl = document.getElementById('cp-date') as HTMLInputElement;
+    const modeBtns = document.querySelectorAll<HTMLButtonElement>('[data-cp-mode]');
+    let mode: 'mating' | 'due' = 'mating';
+
+    function isoLocal(d: Date): string {
+      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    }
+
+    function fmtPretty(d: Date): string {
+      return d.toLocaleDateString('en-US', {
+        weekday: 'short',
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+      });
+    }
+
+    const def = new Date();
+    def.setDate(def.getDate() - 18);
+    dateEl.value = isoLocal(def);
+
+    function render() {
+      const parts = (dateEl.value || isoLocal(def)).split('-').map(Number);
+      const parsed = new Date(parts[0], parts[1] - 1, parts[2]);
+      if (isNaN(parsed.getTime())) return;
+
+      const res = calcDetailedPregnancy(parsed, mode, 'cat');
+      document.getElementById('cp-primary-label')!.textContent =
+        mode === 'mating' ? 'Expected Due Date (Day 64)' : 'Estimated Mating Date';
+      document.getElementById('cp-primary-date')!.textContent =
+        mode === 'mating' ? fmtPretty(res.dueDate) : fmtPretty(res.matingDate);
+      document.getElementById('cp-trimester')!.textContent =
+        `Trimester ${res.trimester} · Week ${res.currentWeek}`;
+      document.getElementById('cp-countdown')!.textContent =
+        res.daysRemaining === 0 ? 'Due Today' : `${res.daysRemaining} days left`;
+      document.getElementById('cp-progress-text')!.textContent =
+        `Day ${res.daysElapsed} of ${res.gestationDays}`;
+      document.getElementById('cp-progress-pct')!.textContent = `${res.progressPct}%`;
+      (document.getElementById('cp-progress-bar') as HTMLElement).style.width =
+        `${res.progressPct}%`;
+      document.getElementById('cp-earliest')!.textContent = fmtPretty(res.earliestDate);
+      document.getElementById('cp-latest')!.textContent = fmtPretty(res.latestDate);
+
+      const list = document.getElementById('cp-timeline')!;
+      list.innerHTML = '';
+      for (const m of res.milestones) {
+        const li = document.createElement('li');
+        li.className =
+          'grid gap-2 rounded-lg border p-4 sm:grid-cols-12 sm:items-center ' +
+          (m.status === 'current'
+            ? 'border-brand bg-brand-soft/60'
+            : m.status === 'passed'
+              ? 'border-hairline bg-canvas-2/60 opacity-80'
+              : 'border-hairline bg-surface');
+        li.innerHTML = `
+          <div class="sm:col-span-3">
+            <span class="font-mono text-xs font-semibold text-brand">${m.week} (Day ${m.day})</span>
+            <p class="mt-0.5 font-mono text-xs text-mute">${fmtPretty(m.date)}</p>
+          </div>
+          <div class="sm:col-span-9">
+            <p class="text-sm font-semibold text-ink">${m.title}</p>
+            <p class="mt-1 text-xs leading-relaxed text-body">${m.detail}</p>
+          </div>
+        `;
+        list.appendChild(li);
+      }
+    }
+
+    modeBtns.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        mode = btn.dataset.cpMode as 'mating' | 'due';
+        modeBtns.forEach((b) => {
+          const active = b === btn;
+          b.classList.toggle('bg-surface', active);
+          b.classList.toggle('text-ink', active);
+          b.classList.toggle('text-mute', !active);
+        });
+        document.getElementById('cp-date-label')!.textContent =
+          mode === 'mating' ? 'Estimated Mating Date' : 'Expected Due Date';
+        render();
+      });
+    });
+
+    dateEl.addEventListener('input', render);
+    dateEl.addEventListener('change', render);
+    window.addEventListener('pcs:copy-share-link', () => {
+      window.history.replaceState({}, '', buildShareUrl({ mode, d: dateEl.value }));
+    });
+    window.addEventListener('pcs:reset-calculator', () => {
+      dateEl.value = isoLocal(def);
+      render();
+    });
+    render();
+  </script>
+</CalculatorShell>

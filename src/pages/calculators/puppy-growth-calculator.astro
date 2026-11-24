@@ -1,0 +1,246 @@
+---
+import CalculatorShell, { type FaqItem } from '../../components/CalculatorShell.astro';
+import { BREEDS } from '../../data/breeds';
+import { getTool } from '../../data/tools';
+
+const tool = getTool('puppy-growth-calculator')!;
+const dogBreeds = BREEDS.filter((b) => b.species === 'dog');
+
+const faqs: FaqItem[] = [
+  {
+    question: 'How accurate is a puppy adult weight calculator?',
+    answer:
+      'Using WSAVA size-class growth curves (Flohr et al., 2018) is markedly more accurate than generic "double the 16-week weight" rules, because toy breeds finish growing around 10 months while giant breeds grow until 18+ months.',
+  },
+  {
+    question: 'At what age does a puppy stop growing?',
+    answer:
+      'Toy breeds reach adult weight around 9–10 months, small and medium breeds around 12 months, large breeds around 15 months, and giant breeds around 18–24 months.',
+  },
+];
+---
+
+<CalculatorShell tool={tool} faqs={faqs}>
+  <div slot="calculator" class="grid gap-6 lg:grid-cols-12 lg:items-start">
+    <div class="space-y-5 rounded-xl border border-hairline bg-surface p-6 lg:col-span-5">
+      <div>
+        <h2 class="text-xl font-medium">Puppy Measurements</h2>
+        <p class="mt-1 text-xs text-mute">Select a breed or size class to load its WSAVA curve.</p>
+      </div>
+
+      <div>
+        <label for="pg-breed" class="block text-xs font-medium text-ink">Breed (optional)</label>
+        <select id="pg-breed" class="pcs-input mt-1.5">
+          <option value="">Mixed Breed / Select Size Class</option>
+          {dogBreeds.map((b) => (
+            <option value={b.slug} data-size={b.sizeClass}>
+              {b.name} ({b.sizeClass})
+            </option>
+          ))}
+        </select>
+      </div>
+
+      <div>
+        <label for="pg-size" class="block text-xs font-medium text-ink">Size Class</label>
+        <select id="pg-size" class="pcs-input mt-1.5">
+          <option value="toy">Toy (&le; 4 kg / 9 lb adult)</option>
+          <option value="small">Small (4–10 kg / 9–22 lb adult)</option>
+          <option value="medium" selected>Medium (10–25 kg / 22–55 lb adult)</option>
+          <option value="large">Large (25–45 kg / 55–99 lb adult)</option>
+          <option value="giant">Giant (&gt; 45 kg / 99+ lb adult)</option>
+        </select>
+      </div>
+
+      <div class="grid gap-4 sm:grid-cols-2">
+        <div>
+          <label for="pg-age" class="block text-xs font-medium text-ink">Current Age (months)</label>
+          <input
+            id="pg-age"
+            type="number"
+            min="1"
+            max="18"
+            step="0.5"
+            value="4"
+            class="pcs-input mt-1.5"
+          />
+        </div>
+        <div>
+          <label for="pg-weight" class="block text-xs font-medium text-ink">Current Weight</label>
+          <div class="mt-1.5 flex">
+            <input
+              id="pg-weight"
+              type="number"
+              min="0.3"
+              max="70"
+              step="0.1"
+              value="10.5"
+              class="pcs-input rounded-r-none border-r-0"
+            />
+            <select
+              id="pg-unit"
+              aria-label="Weight unit"
+              class="rounded-r-md border border-hairline-strong bg-canvas-2 px-2.5 font-mono text-xs font-medium text-ink"
+            >
+              <option value="kg">kg</option>
+              <option value="lb">lb</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="pcs-result-panel rounded-xl bg-surface-dark p-6 text-white lg:col-span-7">
+      <div class="flex items-center justify-between border-b border-zinc-800 pb-4">
+        <p class="font-mono text-xs uppercase tracking-wider text-zinc-400">
+          Projected Adult Weight
+        </p>
+        <span class="rounded bg-emerald-900/60 px-2.5 py-1 font-mono text-xs font-semibold text-emerald-300">
+          WSAVA (Flohr et al., 2018)
+        </span>
+      </div>
+
+      <div class="mt-5 flex flex-wrap items-baseline justify-between gap-4">
+        <div>
+          <p class="text-xs text-zinc-400">Estimated Adult Range</p>
+          <p id="pg-res-range" class="mt-1 font-mono text-3xl font-semibold tabular-nums sm:text-4xl">
+            15.2 – 18.6 kg
+          </p>
+        </div>
+        <div class="text-right">
+          <p class="text-xs text-zinc-400">Growth Completed</p>
+          <p id="pg-res-pct" class="mt-1 font-mono text-2xl font-semibold text-emerald-300 tabular-nums">
+            62%
+          </p>
+        </div>
+      </div>
+
+      <div class="mt-5 grid grid-cols-2 gap-3 border-t border-zinc-800 pt-5">
+        <div class="rounded-lg border border-zinc-800 bg-zinc-900/80 p-3.5">
+          <p class="font-mono text-[11px] uppercase tracking-wider text-zinc-400">
+            Months Until Mature
+          </p>
+          <p id="pg-res-mature" class="mt-1 font-mono text-lg font-semibold text-white tabular-nums">
+            8 months
+          </p>
+        </div>
+        <div class="rounded-lg border border-zinc-800 bg-zinc-900/80 p-3.5">
+          <p class="font-mono text-[11px] uppercase tracking-wider text-zinc-400">
+            Puppy Calorie Est.
+          </p>
+          <p id="pg-res-kcal" class="mt-1 font-mono text-lg font-semibold text-white tabular-nums">
+            1,225 kcal/day
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <section slot="visual" class="rounded-xl border border-hairline bg-surface p-6">
+    <h2 class="border-b border-hairline pb-4 text-xl font-medium">
+      Month-by-Month Projected Weight Chart
+    </h2>
+    <div class="mt-4 overflow-x-auto">
+      <table>
+        <thead>
+          <tr>
+            <th>Age (Months)</th>
+            <th>Projected Weight</th>
+            <th>% of Adult Size</th>
+          </tr>
+        </thead>
+        <tbody id="pg-table-body"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <div slot="editorial">
+    <section>
+      <h2>Why Size-Class Curves Matter</h2>
+      <p class="mt-3 text-sm leading-relaxed text-body">
+        Large and giant breed puppies grow rapidly between 2 and 7 months. Feeding excess calories
+        to accelerate growth increases risk of developmental orthopedic disease (hip/elbow
+        dysplasia). Aim to keep growing puppies lean at a 4–5/9 Body Condition Score.
+      </p>
+    </section>
+  </div>
+
+  <script>
+    import { mer, predictAdultWeight, projectedWeightTable } from '../../data/formulas';
+    import { growthPercentAtAge, type SizeClass } from '../../data/growthCurves';
+    import { getUnitSystem, kgToLb, lbToKg } from '../../scripts/petProfile';
+
+    const breedEl = document.getElementById('pg-breed') as HTMLSelectElement;
+    const sizeEl = document.getElementById('pg-size') as HTMLSelectElement;
+    const ageEl = document.getElementById('pg-age') as HTMLInputElement;
+    const weightEl = document.getElementById('pg-weight') as HTMLInputElement;
+    const unitEl = document.getElementById('pg-unit') as HTMLSelectElement;
+
+    function getWeightKg(): number {
+      const v = parseFloat(weightEl.value) || 0;
+      return unitEl.value === 'lb' ? lbToKg(v) : v;
+    }
+
+    function fmtW(kg: number): string {
+      return unitEl.value === 'lb' ? `${kgToLb(kg)} lb` : `${kg.toFixed(1)} kg`;
+    }
+
+    function render() {
+      const size = sizeEl.value as SizeClass;
+      const age = Math.max(0.5, Math.min(18, parseFloat(ageEl.value) || 4));
+      const wtKg = getWeightKg();
+      const pred = predictAdultWeight(wtKg, age, size);
+      const kcal = Math.round(mer(wtKg, { lifeStage: 'puppy', neutered: false, activity: 'moderate' }));
+
+      document.getElementById('pg-res-range')!.textContent =
+        unitEl.value === 'lb' ? `${pred.minLb} – ${pred.maxLb} lb` : `${pred.minKg} – ${pred.maxKg} kg`;
+      document.getElementById('pg-res-pct')!.textContent = `${pred.growthPercent}%`;
+      document.getElementById('pg-res-mature')!.textContent = `${pred.monthsToMature} months`;
+      document.getElementById('pg-res-kcal')!.textContent = `${kcal.toLocaleString()} kcal/day`;
+
+      const tbody = document.getElementById('pg-table-body')!;
+      tbody.innerHTML = '';
+      const rows = projectedWeightTable(wtKg, Math.ceil(age), size);
+      for (const row of rows) {
+        const pct = Math.round(growthPercentAtAge(size, row.ageMonths));
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td class="font-mono">${row.ageMonths} mo</td>
+          <td class="font-mono font-medium text-ink">${fmtW(row.projectedKg)}</td>
+          <td class="font-mono text-mute">${pct}%</td>
+        `;
+        tbody.appendChild(tr);
+      }
+    }
+
+    breedEl.addEventListener('change', () => {
+      const opt = breedEl.selectedOptions[0];
+      if (opt?.dataset.size) sizeEl.value = opt.dataset.size;
+      render();
+    });
+
+    let prev = unitEl.value;
+    unitEl.addEventListener('change', () => {
+      const v = parseFloat(weightEl.value) || 0;
+      if (prev === 'kg' && unitEl.value === 'lb') weightEl.value = String(kgToLb(v));
+      if (prev === 'lb' && unitEl.value === 'kg') weightEl.value = String(lbToKg(v).toFixed(1));
+      prev = unitEl.value;
+      render();
+    });
+
+    function syncUnit(u: string) {
+      const t = u === 'imperial' ? 'lb' : 'kg';
+      if (unitEl.value !== t) {
+        unitEl.value = t;
+        unitEl.dispatchEvent(new Event('change'));
+      }
+    }
+    window.addEventListener('pcs:unit-change', (e: any) => syncUnit(e.detail?.unit || getUnitSystem()));
+    syncUnit(getUnitSystem());
+
+    [sizeEl, ageEl, weightEl].forEach((el) => {
+      el.addEventListener('input', render);
+      el.addEventListener('change', render);
+    });
+    render();
+  </script>
+</CalculatorShell>

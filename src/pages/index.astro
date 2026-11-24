@@ -1,157 +1,265 @@
 ---
 import Base from '../layouts/Base.astro';
-import { liveTools } from '../data/tools';
-import { BREEDS, publishableBreeds } from '../data/breeds';
+import { CATEGORY_LABELS, liveTools, type ToolCategory } from '../data/tools';
+import { BREEDS } from '../data/breeds';
 
-const title = 'Breed-Aware Pet Calculators';
+const title = 'Pet Condition Score — Veterinary BCS, BMI, Gestation & Nutrition Calculators';
 const description =
-  'Free, source-cited calculators for dog and cat growth, feeding and age. Built on a breed-level dataset of 300+ breeds using WSAVA growth curves and NRC energy formulas.';
+  'Clinically-informed pet health calculators for dogs, cats, and gestation tracking. Assess WSAVA Body Condition Score, Cat FBMI, pregnancy timelines, and NRC calorie targets.';
 
 const tools = liveTools();
-const published = publishableBreeds();
-const totalBreeds = BREEDS.length;
+const categories: ToolCategory[] = ['condition', 'pregnancy', 'nutrition', 'growth-age'];
 ---
 
 <Base title={title} description={description} path="/">
-  <section class="shell pt-14 pb-10 md:pt-20 md:pb-14">
-    <p class="font-mono text-xs uppercase tracking-widest text-brand">
-      Breed-aware pet calculators
-    </p>
-    <h1 class="mt-4 max-w-3xl text-balance">
-      The calculator that knows your dog’s breed.
-    </h1>
-    <p class="mt-5 max-w-2xl text-lg leading-relaxed text-body">
-      Generic calculators answer a generic question. Ours uses a breed-level dataset —
-      adult weight ranges, growth curves, lifespan, body condition and health constraints —
-      so the answer is specific to <em>your</em> animal. Every formula is named, every
-      figure is cited.
-    </p>
+  <!-- Hero: Editorial 2-column opening (DESIGN.md §4) -->
+  <section class="shell border-b border-hairline pt-12 pb-14 md:pt-18 md:pb-18">
+    <div class="grid gap-10 lg:grid-cols-12 lg:items-start">
+      <div class="lg:col-span-7">
+        <p class="font-mono text-xs uppercase tracking-widest text-brand">
+          petconditionscore.com · Veterinary &amp; Clinical Reference
+        </p>
+        <h1 class="mt-4 max-w-2xl text-balance">
+          Clinical pet condition, gestation &amp; nutrition calculators.
+        </h1>
+        <p class="mt-5 max-w-xl text-base leading-relaxed text-body md:text-lg">
+          Generic pet BMI tools ignore breed proportions and bury methodology behind ad clutter.
+          Pet Condition Score applies peer-reviewed <strong class="font-medium text-ink">WSAVA</strong>,
+          <strong class="font-medium text-ink">NRC (2006)</strong>, and morphometric equations so
+          every estimate is transparent, breed-aware, and vet-ready.
+        </p>
 
-    <div class="mt-8 flex flex-wrap gap-3">
-      <a
-        href="#calculators"
-        class="inline-flex items-center rounded-full bg-brand px-6 py-3 text-sm font-medium text-white no-underline transition hover:bg-brand-deep"
-      >
-        Browse the calculators
-      </a>
-      <a
-        href="/methodology/"
-        class="inline-flex items-center rounded-full border border-hairline-strong bg-surface px-6 py-3 text-sm font-medium text-ink no-underline transition hover:bg-canvas-2"
-      >
-        See how we calculate
-      </a>
-    </div>
-  </section>
-
-  <section id="calculators" class="shell py-12">
-    <h2 class="text-2xl">Calculators</h2>
-    {
-      tools.length === 0 ? (
-        <div class="mt-6 rounded-lg border border-dashed border-hairline-strong bg-surface p-8 text-center">
-          <p class="text-body">
-            The first calculators are being built. The breed dataset that powers them is
-            already in progress.
-          </p>
+        <div class="mt-8 flex flex-wrap gap-3">
+          <a href="/calculators/dog-bcs/" class="pcs-btn-primary">
+            Assess Dog Condition Score
+          </a>
+          <a href="/calculators/cat-bmi/" class="pcs-btn-secondary">
+            Calculate Cat BMI (FBMI)
+          </a>
+          <a href="/calculators/" class="pcs-btn-secondary">
+            Browse all {tools.length} tools
+          </a>
         </div>
-      ) : (
-        <ul class="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {tools.map((tool) => (
-            <li>
+      </div>
+
+      <!-- Quick Interactive Lookup Card -->
+      <div class="rounded-xl border border-hairline-strong bg-surface p-6 lg:col-span-5">
+        <div class="flex items-center justify-between border-b border-hairline pb-3">
+          <p class="font-mono text-xs uppercase tracking-wider text-mute">Instant Tool Finder</p>
+          <span class="font-mono text-xs text-brand">{tools.length} Live Calculators</span>
+        </div>
+
+        <label for="home-tool-search" class="sr-only">Search calculators</label>
+        <input
+          id="home-tool-search"
+          type="search"
+          placeholder="Search e.g. dog bcs, cat bmi, pregnancy, calorie..."
+          class="pcs-input mt-4"
+          autocomplete="off"
+        />
+
+        <ul id="home-tool-results" class="mt-4 divide-y divide-hairline">
+          {tools.slice(0, 5).map((tool) => (
+            <li data-search-text={`${tool.title} ${tool.keyword} ${tool.blurb} ${tool.species.join(' ')}`.toLowerCase()}>
               <a
-                href={`/tools/${tool.slug}/`}
-                class="block h-full rounded-lg border border-hairline bg-surface p-5 no-underline transition hover:border-brand"
+                href={`/calculators/${tool.slug}/`}
+                class="flex items-center justify-between gap-3 py-2.5 no-underline transition hover:bg-canvas"
               >
-                <h3 class="text-lg leading-snug">{tool.title}</h3>
-                <p class="mt-2 text-sm leading-relaxed text-body">{tool.blurb}</p>
+                <div>
+                  <p class="text-sm font-semibold text-ink">{tool.shortTitle}</p>
+                  <p class="text-xs text-mute">{tool.sourceLabel}</p>
+                </div>
+                <span class="font-mono text-xs text-brand">&rarr;</span>
               </a>
             </li>
           ))}
         </ul>
-      )
-    }
-  </section>
 
-  <section class="border-y border-hairline bg-surface py-14">
-    <div class="shell grid gap-10 md:grid-cols-2 md:items-center">
-      <div>
-        <h2>The dataset is the product.</h2>
-        <p class="mt-4 leading-relaxed text-body">
-          Every calculator on this site reads from one breed database: adult weight
-          ranges for males and females, growth curves by size class, energy requirements,
-          expected lifespan, ideal body condition score and breed-specific health
-          constraints. It is the reason our answers are specific — and the reason a
-          generic calculator cannot copy them.
-        </p>
-        <ul class="mt-6 space-y-3 text-sm text-body">
-          <li class="flex gap-3">
-            <span class="font-mono text-brand">01</span>
-            <span>
-              <strong class="text-ink">Growth curves</strong> from WSAVA
-              (Flohr et al., 2018), applied by size class.
-            </span>
-          </li>
-          <li class="flex gap-3">
-            <span class="font-mono text-brand">02</span>
-            <span>
-              <strong class="text-ink">Energy requirements</strong> from NRC
-              (2006), Nutrient Requirements of Dogs and Cats.
-            </span>
-          </li>
-          <li class="flex gap-3">
-            <span class="font-mono text-brand">03</span>
-            <span>
-              <strong class="text-ink">Body condition scoring</strong> on the
-              WSAVA 1–9 scale, breed-aware for obesity-prone breeds.
-            </span>
-          </li>
-        </ul>
-      </div>
-
-      <div class="rounded-lg border border-hairline bg-canvas p-6">
-        <p class="font-mono text-xs uppercase tracking-wider text-mute">Dataset status</p>
-        <p class="mt-3 font-display text-4xl font-semibold text-ink">
-          {totalBreeds}
-          <span class="text-lg font-normal text-body">breeds mapped</span>
-        </p>
-        <p class="mt-4 text-sm leading-relaxed text-body">
-          {published.length} of {totalBreeds} entries have been human-verified against
-          their sources and are cleared for publication. We publish only what has been
-          checked.
-        </p>
-        <div class="mt-5 h-2 overflow-hidden rounded-full bg-canvas-2">
-          <div
-            class="h-full rounded-full bg-brand"
-            style={`width:${Math.round((published.length / Math.max(totalBreeds, 1)) * 100)}%`}
-          />
+        <div id="home-saved-pets" class="mt-4 hidden border-t border-hairline pt-4">
+          <p class="font-mono text-[11px] uppercase tracking-wider text-mute">
+            Your saved pet profiles (this device)
+          </p>
+          <div id="home-saved-pets-list" class="mt-2 flex flex-wrap gap-2"></div>
         </div>
       </div>
     </div>
   </section>
 
+  <!-- Core Calculators Grouped by Clinical Category -->
+  <section id="calculators" class="shell py-14">
+    <div class="flex flex-wrap items-end justify-between gap-4 border-b border-hairline pb-4">
+      <div>
+        <p class="font-mono text-xs uppercase tracking-wider text-mute">Tool Directory</p>
+        <h2 class="mt-1">Every calculator, cited and instant</h2>
+      </div>
+      <a href="/calculators/" class="text-sm font-medium">View filterable directory &rarr;</a>
+    </div>
+
+    <div class="mt-10 space-y-12">
+      {categories.map((cat) => {
+        const catTools = tools.filter((t) => t.category === cat);
+        if (catTools.length === 0) return null;
+        return (
+          <div>
+            <h3 class="font-mono text-xs font-medium uppercase tracking-widest text-mute">
+              {CATEGORY_LABELS[cat]}
+            </h3>
+            <ul class="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {catTools.map((tool) => (
+                <li>
+                  <a
+                    href={`/calculators/${tool.slug}/`}
+                    class="flex h-full flex-col justify-between rounded-lg border border-hairline bg-surface p-5 no-underline transition hover:border-brand"
+                  >
+                    <div>
+                      <div class="flex items-center justify-between gap-2">
+                        <span class="font-mono text-[11px] uppercase tracking-wider text-brand">
+                          {tool.species.join(' · ')}
+                        </span>
+                        <span class="font-mono text-[11px] text-mute">{tool.sourceLabel}</span>
+                      </div>
+                      <h4 class="mt-2.5 text-lg font-medium text-ink">{tool.title}</h4>
+                      <p class="mt-2 text-sm leading-relaxed text-body">{tool.blurb}</p>
+                    </div>
+                    <p class="mt-4 font-mono text-xs font-medium text-brand">
+                      Open calculator &rarr;
+                    </p>
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+        );
+      })}
+    </div>
+  </section>
+
+  <!-- High-Contrast Dark Editorial Feature Band (DESIGN.md §2 surface-dark) -->
+  <section class="bg-surface-dark py-16 text-white">
+    <div class="shell grid gap-10 lg:grid-cols-12 lg:items-center">
+      <div class="lg:col-span-7">
+        <p class="font-mono text-xs uppercase tracking-widest text-emerald-300">
+          Why Pet Condition Score
+        </p>
+        <h2 class="mt-3 text-white">
+          Built to replace cluttered, one-size-fits-all pet calculators.
+        </h2>
+        <p class="mt-4 max-w-2xl text-base leading-relaxed text-zinc-300">
+          Most online pet calculators treat a Whippet and an English Bulldog with the same naive
+          weight ratio, hide interpretation tables below three banners of ads, and forget your pet
+          the moment you switch tabs. We built a calm, single-profile veterinary instrument instead.
+        </p>
+
+        <div class="mt-8 grid gap-6 sm:grid-cols-3">
+          <div class="border-t border-zinc-700 pt-4">
+            <p class="font-mono text-xs text-emerald-300">01 · WSAVA 1–9 BCS</p>
+            <p class="mt-1.5 text-sm text-zinc-300">
+              Guided tactile &amp; visual scoring plus ideal target weight calculation.
+            </p>
+          </div>
+          <div class="border-t border-zinc-700 pt-4">
+            <p class="font-mono text-xs text-emerald-300">02 · Full Timelines</p>
+            <p class="mt-1.5 text-sm text-zinc-300">
+              Week-by-week pregnancy milestones, ultrasound windows, and whelping prep.
+            </p>
+          </div>
+          <div class="border-t border-zinc-700 pt-4">
+            <p class="font-mono text-xs text-emerald-300">03 · Vet Printouts</p>
+            <p class="mt-1.5 text-sm text-zinc-300">
+              Local pet profiles and clean one-click summaries ready for your vet visit.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="rounded-xl border border-zinc-700 bg-zinc-900 p-6 lg:col-span-5">
+        <p class="font-mono text-xs uppercase tracking-wider text-zinc-400">
+          Breed &amp; Formula Spine
+        </p>
+        <p class="mt-3 font-display text-4xl font-medium text-white tabular-nums">
+          {BREEDS.length}+ <span class="text-lg font-normal text-zinc-400">reference breeds</span>
+        </p>
+        <p class="mt-3 text-sm leading-relaxed text-zinc-300">
+          Each profile carries adult male/female weight bounds, WSAVA size-class growth curves,
+          energy multipliers, and breed-specific risk flags like brachycephaly and obesity
+          predisposition.
+        </p>
+        <div class="mt-6 flex flex-wrap gap-3">
+          <a
+            href="/methodology/"
+            class="inline-flex items-center rounded-md bg-white px-4 py-2 text-xs font-semibold text-ink no-underline transition hover:bg-zinc-200"
+          >
+            Inspect formulas &amp; sources
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Clinical Standards Trio -->
   <section class="shell py-14">
-    <h2>Why a breed-level answer?</h2>
-    <div class="mt-6 grid gap-4 md:grid-cols-3">
-      <div class="rounded-lg border border-hairline bg-surface p-5">
-        <h3 class="text-base">Size changes everything</h3>
+    <div class="grid gap-6 md:grid-cols-3">
+      <div class="rounded-lg border border-hairline bg-surface p-6">
+        <p class="font-mono text-xs uppercase tracking-wider text-brand">Pet-Native Units</p>
+        <h3 class="mt-2 text-lg">No generic unit bloat</h3>
         <p class="mt-2 text-sm leading-relaxed text-body">
-          A 4 kg Chihuahua and a 45 kg Great Dane are the same age but metabolically
-          and developmentally worlds apart. Our growth curves are size-class specific.
+          Switch seamlessly between <code class="font-mono text-xs">kg/cm</code> and{' '}
+          <code class="font-mono text-xs">lb/in</code> site-wide, and read food portions in real
+          <code class="font-mono text-xs">kcal/cup</code>, grams, and standard cans.
         </p>
       </div>
-      <div class="rounded-lg border border-hairline bg-surface p-5">
-        <h3 class="text-base">Body condition beats the bag</h3>
+      <div class="rounded-lg border border-hairline bg-surface p-6">
+        <p class="font-mono text-xs uppercase tracking-wider text-brand">Instant &amp; Reverse</p>
+        <h3 class="mt-2 text-lg">Live math, both ways</h3>
         <p class="mt-2 text-sm leading-relaxed text-body">
-          Feeding charts tell you what to feed a breed. Body condition score tells you
-          what <em>this</em> animal needs. We ask for both.
+          Every output updates immediately as you type. Pregnancy and gestational tools solve both
+          forward from mating/LMP and backward from a due date.
         </p>
       </div>
-      <div class="rounded-lg border border-hairline bg-surface p-5">
-        <h3 class="text-base">Breeds carry constraints</h3>
+      <div class="rounded-lg border border-hairline bg-surface p-6">
+        <p class="font-mono text-xs uppercase tracking-wider text-brand">Private by Default</p>
+        <h3 class="mt-2 text-lg">Saved locally on device</h3>
         <p class="mt-2 text-sm leading-relaxed text-body">
-          Brachycephalic breeds overheat. Frenchies gain weight easily. Large breeds
-          need controlled growth. That context changes the recommendation.
+          Save your dog or cat once to carry their weight, breed, and BCS across calculators—stored
+          in your browser with zero accounts or tracking.
         </p>
       </div>
     </div>
   </section>
+
+  <script>
+    import { getSavedPets, setActivePetId } from '../scripts/petProfile';
+
+    const searchInput = document.getElementById('home-tool-search') as HTMLInputElement | null;
+    const listItems = document.querySelectorAll<HTMLLIElement>('#home-tool-results li');
+
+    searchInput?.addEventListener('input', () => {
+      const q = searchInput.value.trim().toLowerCase();
+      listItems.forEach((li) => {
+        const text = li.dataset.searchText || '';
+        li.style.display = !q || text.includes(q) ? '' : 'none';
+      });
+    });
+
+    function renderHomePets() {
+      const pets = getSavedPets();
+      const box = document.getElementById('home-saved-pets');
+      const list = document.getElementById('home-saved-pets-list');
+      if (!box || !list || pets.length === 0) return;
+
+      box.classList.remove('hidden');
+      list.innerHTML = '';
+      for (const pet of pets) {
+        const a = document.createElement('a');
+        a.href = pet.species === 'cat' ? '/calculators/cat-bmi/' : '/calculators/dog-bcs/';
+        a.className =
+          'rounded-md border border-hairline bg-canvas-2 px-2.5 py-1 text-xs font-medium text-ink no-underline hover:border-brand';
+        a.textContent = `${pet.name} · ${pet.weightKg} kg`;
+        a.addEventListener('click', () => setActivePetId(pet.id));
+        list.appendChild(a);
+      }
+    }
+
+    renderHomePets();
+  </script>
 </Base>

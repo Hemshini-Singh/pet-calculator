@@ -1,0 +1,244 @@
+---
+import CalculatorShell, { type FaqItem } from '../../components/CalculatorShell.astro';
+import { getTool } from '../../data/tools';
+
+const tool = getTool('gestational-week')!;
+
+const faqs: FaqItem[] = [
+  {
+    question: 'How do you calculate gestational week from LMP?',
+    answer:
+      'Gestational age is counted from the first day of your Last Menstrual Period (LMP), not the date of conception. Using Naegele’s Rule, a full-term pregnancy spans 280 days (40 weeks) from LMP for a 28-day cycle.',
+  },
+  {
+    question: 'What is the difference between gestational age and fetal age?',
+    answer:
+      'Gestational age starts on the first day of your LMP (roughly 2 weeks before ovulation), whereas fetal or conceptional age measures from fertilization. Gestational age is typically about 2 weeks ahead of fetal age.',
+  },
+  {
+    question: 'Can I calculate gestational week from my due date instead?',
+    answer:
+      'Yes. Switch to "From Due Date (EDD)" at the top of this calculator to reverse-solve your estimated LMP, conception window, and exact current gestational weeks and days.',
+  },
+  {
+    question: 'How accurate is LMP-based gestational age?',
+    answer:
+      'LMP dating is accurate when menstrual cycles are regular (~28 days). If cycles are longer or shorter, adjust the cycle length input, or rely on a first-trimester dating ultrasound (crown-rump length), which is the clinical gold standard.',
+  },
+];
+---
+
+<CalculatorShell tool={tool} faqs={faqs} showPetProfileBar={false}>
+  <div slot="calculator" class="grid gap-6 lg:grid-cols-12 lg:items-start">
+    <div class="space-y-5 rounded-xl border border-hairline bg-surface p-6 lg:col-span-5">
+      <div>
+        <h2 class="text-xl font-medium">Gestational Age Inputs</h2>
+        <p class="mt-1 text-xs text-mute">Calculate by LMP or reverse-solve from your due date.</p>
+      </div>
+
+      <div class="inline-flex w-full rounded-md border border-hairline bg-canvas-2 p-0.5 text-xs">
+        <button
+          type="button"
+          data-gw-mode="lmp"
+          class="flex-1 rounded bg-surface px-3 py-2 font-medium text-ink cursor-pointer"
+        >
+          From LMP Date
+        </button>
+        <button
+          type="button"
+          data-gw-mode="edd"
+          class="flex-1 rounded px-3 py-2 font-medium text-mute cursor-pointer"
+        >
+          From Due Date (EDD)
+        </button>
+      </div>
+
+      <div>
+        <label for="gw-date" id="gw-date-label" class="block text-xs font-medium text-ink">
+          First Day of Last Menstrual Period (LMP)
+        </label>
+        <input id="gw-date" type="date" class="pcs-input mt-1.5" />
+      </div>
+
+      <div>
+        <div class="flex items-center justify-between text-xs">
+          <label for="gw-cycle" class="font-medium text-ink">Average Cycle Length</label>
+          <span id="gw-cycle-val" class="font-mono font-semibold text-brand">28 days</span>
+        </div>
+        <input
+          id="gw-cycle"
+          type="range"
+          min="21"
+          max="35"
+          step="1"
+          value="28"
+          class="mt-2 w-full accent-brand cursor-pointer"
+        />
+        <div class="mt-1 flex justify-between font-mono text-[10px] text-mute">
+          <span>21 days</span>
+          <span>28 (standard)</span>
+          <span>35 days</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="pcs-result-panel rounded-xl bg-surface-dark p-6 text-white lg:col-span-7">
+      <div class="flex items-center justify-between border-b border-zinc-800 pb-4">
+        <p class="font-mono text-xs uppercase tracking-wider text-zinc-400">
+          Estimated Gestational Age
+        </p>
+        <span id="gw-trimester" class="rounded bg-emerald-900/60 px-2.5 py-1 font-mono text-xs font-semibold text-emerald-300">
+          2nd Trimester
+        </span>
+      </div>
+
+      <div class="mt-5 flex flex-wrap items-baseline justify-between gap-4">
+        <div>
+          <p class="text-xs text-zinc-400">Current Progress</p>
+          <p id="gw-age" class="mt-1 font-mono text-4xl font-semibold tabular-nums">
+            14w 3d
+          </p>
+        </div>
+        <div class="text-right">
+          <p class="text-xs text-zinc-400">Fetal Size Benchmark</p>
+          <p id="gw-size" class="mt-1 text-base font-medium text-emerald-300">—</p>
+        </div>
+      </div>
+
+      <div class="mt-5">
+        <div class="flex justify-between font-mono text-xs text-zinc-400">
+          <span id="gw-days-text">Day 0 of 280</span>
+          <span id="gw-pct">0%</span>
+        </div>
+        <div class="mt-2 h-2.5 w-full overflow-hidden rounded-full bg-zinc-800">
+          <div id="gw-bar" class="h-full rounded-full bg-emerald-500 transition-all" style="width: 0%"></div>
+        </div>
+      </div>
+
+      <div class="mt-6 grid grid-cols-3 gap-3 border-t border-zinc-800 pt-5">
+        <div class="rounded-lg border border-zinc-800 bg-zinc-900/80 p-3">
+          <p class="font-mono text-[10px] uppercase tracking-wider text-zinc-400">Due Date (EDD)</p>
+          <p id="gw-edd" class="mt-1 font-mono text-sm font-semibold text-white">—</p>
+        </div>
+        <div class="rounded-lg border border-zinc-800 bg-zinc-900/80 p-3">
+          <p class="font-mono text-[10px] uppercase tracking-wider text-zinc-400">Est. Conception</p>
+          <p id="gw-conception" class="mt-1 font-mono text-sm font-semibold text-white">—</p>
+        </div>
+        <div class="rounded-lg border border-zinc-800 bg-zinc-900/80 p-3">
+          <p class="font-mono text-[10px] uppercase tracking-wider text-zinc-400">Days Left</p>
+          <p id="gw-remaining" class="mt-1 font-mono text-sm font-semibold text-white tabular-nums">—</p>
+        </div>
+      </div>
+
+      <p class="mt-4 text-[11px] text-zinc-400">
+        Cited: Naegele’s Rule (280 days from LMP adjusted for cycle length); ACOG Committee Opinion No. 700.
+      </p>
+    </div>
+  </div>
+
+  <div slot="editorial" class="space-y-8">
+    <section>
+      <h2>Trimester &amp; Gestational Week Chart</h2>
+      <div class="mt-4 overflow-x-auto rounded-lg border border-hairline bg-surface">
+        <table>
+          <thead>
+            <tr>
+              <th>Trimester</th>
+              <th>Gestational Weeks</th>
+              <th>Clinical Milestones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="font-medium">First Trimester</td>
+              <td class="font-mono">Weeks 1 – 13</td>
+              <td>Implantation, embryonic heartbeat (~6w), first-trimester dating scan (11–13w).</td>
+            </tr>
+            <tr>
+              <td class="font-medium">Second Trimester</td>
+              <td class="font-mono">Weeks 14 – 27</td>
+              <td>Anatomy ultrasound (18–22w), quickening / fetal movement, glucose screening (24–28w).</td>
+            </tr>
+            <tr>
+              <td class="font-medium">Third Trimester</td>
+              <td class="font-mono">Weeks 28 – 40</td>
+              <td>Rapid fetal weight gain, Group B Strep screen (36w), full-term window (39–40w).</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    import { calcGestationalWeek } from '../../data/formulas';
+    import { buildShareUrl } from '../../scripts/petProfile';
+
+    const dateEl = document.getElementById('gw-date') as HTMLInputElement;
+    const cycleEl = document.getElementById('gw-cycle') as HTMLInputElement;
+    const modeBtns = document.querySelectorAll<HTMLButtonElement>('[data-gw-mode]');
+    let mode: 'lmp' | 'edd' = 'lmp';
+
+    function isoLocal(d: Date): string {
+      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    }
+
+    function fmtShort(d: Date): string {
+      return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    }
+
+    const def = new Date();
+    def.setDate(def.getDate() - 100);
+    dateEl.value = isoLocal(def);
+
+    function render() {
+      const parts = (dateEl.value || isoLocal(def)).split('-').map(Number);
+      const parsed = new Date(parts[0], parts[1] - 1, parts[2]);
+      if (isNaN(parsed.getTime())) return;
+
+      const cycle = Number(cycleEl.value) || 28;
+      document.getElementById('gw-cycle-val')!.textContent = `${cycle} days`;
+
+      const res = calcGestationalWeek(parsed, mode, cycle);
+      document.getElementById('gw-age')!.textContent = `${res.weeks} wks, ${res.daysRemainder} days`;
+      document.getElementById('gw-trimester')!.textContent = `Trimester ${res.trimester}`;
+      document.getElementById('gw-size')!.textContent = res.fetalSizeComparison;
+      document.getElementById('gw-days-text')!.textContent = `Day ${res.gestationalDays} of 280`;
+      document.getElementById('gw-pct')!.textContent = `${res.progressPct}%`;
+      (document.getElementById('gw-bar') as HTMLElement).style.width = `${res.progressPct}%`;
+      document.getElementById('gw-edd')!.textContent = fmtShort(res.eddDate);
+      document.getElementById('gw-conception')!.textContent = fmtShort(res.conceptionDate);
+      document.getElementById('gw-remaining')!.textContent = `${res.daysRemaining}d`;
+    }
+
+    modeBtns.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        mode = btn.dataset.gwMode as 'lmp' | 'edd';
+        modeBtns.forEach((b) => {
+          const active = b === btn;
+          b.classList.toggle('bg-surface', active);
+          b.classList.toggle('text-ink', active);
+          b.classList.toggle('text-mute', !active);
+        });
+        document.getElementById('gw-date-label')!.textContent =
+          mode === 'lmp'
+            ? 'First Day of Last Menstrual Period (LMP)'
+            : 'Estimated Due Date (EDD)';
+        render();
+      });
+    });
+
+    dateEl.addEventListener('input', render);
+    dateEl.addEventListener('change', render);
+    cycleEl.addEventListener('input', render);
+    window.addEventListener('pcs:copy-share-link', () => {
+      window.history.replaceState({}, '', buildShareUrl({ mode, d: dateEl.value, c: cycleEl.value }));
+    });
+    window.addEventListener('pcs:reset-calculator', () => {
+      dateEl.value = isoLocal(def);
+      cycleEl.value = '28';
+      render();
+    });
+    render();
+  </script>
+</CalculatorShell>

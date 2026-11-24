@@ -1,0 +1,90 @@
+---
+import Base from '../../layouts/Base.astro';
+
+const title = 'Methodology & Veterinary Sources';
+const description =
+  'Every equation powering Pet Condition Score: WSAVA 9-point Body Condition Score, Cat FBMI, NRC (2006) energy requirements, WSAVA growth curves, and gestation models.';
+---
+
+<Base title={title} description={description} path="/methodology/" ogType="article">
+  <article class="shell pt-10 pb-16 md:pt-14">
+    <div class="reading-measure">
+      <p class="font-mono text-xs uppercase tracking-widest text-brand">
+        Clinical Reference &amp; Transparency
+      </p>
+      <h1 class="mt-3">Methodology &amp; Published Sources</h1>
+      <p class="mt-4 text-lg leading-relaxed text-body">
+        Pet Condition Score never treats veterinary equations as black boxes. Every calculator on
+        this site exposes its underlying equation, variable assumptions, and primary peer-reviewed
+        reference.
+      </p>
+
+      <div class="mt-10 space-y-10 divide-y divide-hairline">
+        <section class="pt-8 first:pt-0">
+          <h2>1. Canine Body Condition Score (WSAVA 1–9)</h2>
+          <p class="mt-3 text-sm leading-relaxed text-body">
+            Unlike human medicine, a universal height/weight BMI fails across dog breeds because a
+            Whippet and a Pug have dramatically different skeletal frame proportions. Veterinary
+            guidelines (WSAVA Global Nutrition Committee; Laflamme, 1997) score dogs on a
+            <strong>1–9 Body Condition Score (BCS)</strong> scale where <strong>5/9 is ideal</strong>.
+          </p>
+          <div class="mt-4 rounded-lg border border-hairline bg-canvas-2 p-4 font-mono text-xs text-ink">
+            Ideal Weight (kg) &approx; Current Weight (kg) &divide; [1 + 0.10 &times; (BCS &minus; 5)]
+          </div>
+          <p class="mt-3 text-xs text-mute">
+            Each 1-point step above 5/9 corresponds to roughly 10% excess body weight above ideal
+            (Laflamme DP, <em>Canine Practice</em>, 1997; WSAVA Global Nutrition Guidelines).
+          </p>
+        </section>
+
+        <section class="pt-8">
+          <h2>2. Feline Body Mass Index (FBMI)</h2>
+          <p class="mt-3 text-sm leading-relaxed text-body">
+            Because domestic cats have relatively uniform skeletal proportions compared to dogs,
+            Hawthorne &amp; Butterwick (Waltham Centre for Pet Nutrition) validated an objective
+            morphometric equation estimating percentage body fat from two tape measurements:
+            <strong>9th-rib chest circumference</strong> and <strong>lower hind-limb length</strong>{' '}
+            (patella to calcaneus).
+          </p>
+          <div class="mt-4 rounded-lg border border-hairline bg-canvas-2 p-4 font-mono text-xs text-ink">
+            FBMI (%) = [((Rib Cage cm &divide; 0.7062) &minus; Leg cm) &divide; 0.9156] &minus; Leg cm
+          </div>
+          <p class="mt-3 text-xs text-mute">
+            Classification: &lt;15% Underweight · 15–29.9% Normal · 30–41.9% Overweight · &ge;42% Obese.
+          </p>
+        </section>
+
+        <section class="pt-8">
+          <h2>3. Resting &amp; Daily Energy Requirements (NRC 2006)</h2>
+          <p class="mt-3 text-sm leading-relaxed text-body">
+            Daily calorie calculations use the National Research Council (2006) metabolic scaling
+            law for Resting Energy Requirement (RER), multiplied by species, life-stage, neuter
+            status, and activity factors to obtain Maintenance Energy Requirement (MER).
+          </p>
+          <div class="mt-4 rounded-lg border border-hairline bg-canvas-2 p-4 font-mono text-xs text-ink">
+            RER (kcal/day) = 70 &times; (Weight in kg)<sup>0.75</sup> &nbsp;|&nbsp; MER = RER &times; Factor
+          </div>
+        </section>
+
+        <section class="pt-8">
+          <h2>4. Puppy Growth Curves (WSAVA / Flohr et al., 2018)</h2>
+          <p class="mt-3 text-sm leading-relaxed text-body">
+            Puppy adult weight predictions interpolate across five size-class trajectories (Toy &le;4
+            kg, Small 4–10 kg, Medium 10–25 kg, Large 25–45 kg, Giant &gt;45 kg) rather than applying
+            a flat multiplier.
+          </p>
+        </section>
+
+        <section class="pt-8">
+          <h2>5. Animal &amp; Human Gestation Models</h2>
+          <p class="mt-3 text-sm leading-relaxed text-body">
+            Canine gestation averages <strong>63 days</strong> (normal delivery window 58–68 days
+            from breeding); feline gestation averages <strong>63–65 days</strong> (safe window
+            58–71 days). Human gestational age follows <strong>Naegele’s Rule</strong> (280 days /
+            40 weeks from Last Menstrual Period, adjusted for cycle length deviations from 28 days).
+          </p>
+        </section>
+      </div>
+    </div>
+  </article>
+</Base>
